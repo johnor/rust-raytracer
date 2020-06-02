@@ -13,7 +13,11 @@ fn main() {
     println!("A tuple: {:?}", t);
     println!("Is point: {}, is vector: {}", t.is_point(), t.is_vector());
 
-    let t2 = Tuple { x: 2.0, w: 2.0, ..t };
+    let t2 = Tuple {
+        x: 2.0,
+        w: 2.0,
+        ..t
+    };
     println!("A tuple: {:?}", t2);
     println!("Is point: {}, is vector: {}", t2.is_point(), t2.is_vector());
 }
