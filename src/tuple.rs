@@ -31,28 +31,28 @@ mod tests {
     #[test]
     fn tuple_with_w1_is_a_point() {
         let t = Tuple {
-            x: 42.0,
-            y: -1.2,
-            z: 100.12,
+            x: 4.3,
+            y: -4.2,
+            z: 3.1,
             w: 1.0,
         };
-        assert_eq!(42.0, t.x);
-        assert_eq!(-1.2, t.y);
-        assert_eq!(100.12, t.z);
+        assert_eq!(4.3, t.x);
+        assert_eq!(-4.2, t.y);
+        assert_eq!(3.1, t.z);
         assert!(t.is_point());
         assert!(!t.is_vector());
     }
     #[test]
     fn tuple_with_w0_is_a_vector() {
         let t = Tuple {
-            x: 42.0,
-            y: -1.2,
-            z: 100.12,
+            x: 4.3,
+            y: -4.2,
+            z: 3.1,
             w: 0.0,
         };
-        assert_eq!(42.0, t.x);
-        assert_eq!(-1.2, t.y);
-        assert_eq!(100.12, t.z);
+        assert_eq!(4.3, t.x);
+        assert_eq!(-4.2, t.y);
+        assert_eq!(3.1, t.z);
         assert!(!t.is_point());
         assert!(t.is_vector());
     }
