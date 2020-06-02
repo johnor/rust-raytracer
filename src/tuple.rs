@@ -24,9 +24,19 @@ pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     }
 }
 
+pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
+    Tuple {
+        x: x,
+        y: y,
+        z: z,
+        w: 0.0,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::tuple::point;
+    use crate::tuple::vector;
     use crate::tuple::Tuple;
     #[test]
     fn tuple_with_w1_is_a_point() {
@@ -64,6 +74,17 @@ mod tests {
             y: -4.0,
             z: 3.0,
             w: 1.0,
+        };
+        assert!(t == p);
+    }
+    #[test]
+    fn vector_creates_tuples_with_w0() {
+        let p = vector(4.0, -4.0, 3.0);
+        let t = Tuple {
+            x: 4.0,
+            y: -4.0,
+            z: 3.0,
+            w: 0.0,
         };
         assert!(t == p);
     }
