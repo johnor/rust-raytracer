@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Sub, Mul};
 
 #[derive(PartialEq, Debug)]
 pub struct Color {
@@ -31,9 +31,39 @@ impl Sub for Color {
     }
 }
 
+impl Mul for Color {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Self {
+            r: self.r * other.r,
+            g: self.g * other.g,
+            b: self.b * other.b,
+        }
+    }
+}
+
+impl Mul<f64> for Color {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self {
+        Self {
+            r: self.r * rhs,
+            g: self.g * rhs,
+            b: self.b * rhs,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::color::Color;
+
+    fn assert_color_eq(c1: Color, c2: Color) {
+        assert!((c1.r - c2.r).abs() < std::f64::EPSILON);
+        assert!((c1.g - c2.g).abs() < std::f64::EPSILON);
+        assert!((c1.b - c2.b).abs() < std::f64::EPSILON);
+    }
 
     #[test]
     fn create_color() {
@@ -49,27 +79,28 @@ mod tests {
 
     #[test]
     fn color_ops_addition() {
-        let c1 = Color { r: 0.9, g: 0.6, b: 0.75, };
-        let c2 = Color { r: 0.7, g: 0.1, b: 0.25, };
-
-        let result = c1 + c2;
-        let expected = Color { r: 1.6, g: 0.7, b: 1.0, };
-
-        assert!((expected.r - result.r).abs() < std::f64::EPSILON);
-        assert!((expected.g - result.g).abs() < std::f64::EPSILON);
-        assert!((expected.b - result.b).abs() < std::f64::EPSILON);
+        let c1 = Color { r: 0.9, g: 0.6, b: 0.75 };
+        let c2 = Color { r: 0.7, g: 0.1, b: 0.25 };
+        assert_color_eq(Color { r: 1.6, g: 0.7, b: 1.0 }, c1 + c2);
     }
 
     #[test]
     fn color_ops_subtraction() {
-        let c1 = Color { r: 0.9, g: 0.6, b: 0.75, };
-        let c2 = Color { r: 0.7, g: 0.1, b: 0.25, };
+        let c1 = Color { r: 0.9, g: 0.6, b: 0.75 };
+        let c2 = Color { r: 0.7, g: 0.1, b: 0.25 };
+        assert_color_eq(Color { r: 0.2, g: 0.5, b: 0.5 }, c1 - c2);
+    }
 
-        let result = c1 - c2;
-        let expected = Color { r: 0.2, g: 0.5, b: 0.5, };
+    #[test]
+    fn color_ops_multiply_colors() {
+        let c1 = Color { r: 1.0, g: 0.2, b: 0.4 };
+        let c2 = Color { r: 0.9, g: 1.0, b: 0.1 };
+        assert_color_eq(Color { r: 0.9, g: 0.2, b: 0.04 }, c1 * c2);
+    }
 
-        assert!((expected.r - result.r).abs() < std::f64::EPSILON);
-        assert!((expected.g - result.g).abs() < std::f64::EPSILON);
-        assert!((expected.b - result.b).abs() < std::f64::EPSILON);
+    #[test]
+    fn color_ops_multiply_by_scalar() {
+        let c = Color { r: 0.2, g: 0.3, b: 0.4 };
+        assert_color_eq(Color { r: 0.4, g: 0.6, b: 0.8 }, c * 2.0);
     }
 }
