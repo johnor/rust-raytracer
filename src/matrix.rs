@@ -1,7 +1,7 @@
 macro_rules! define_matrix_struct {
     ($name:ident, $size:expr) =>
     {
-        #[derive(Clone, Copy, PartialEq, Debug)]
+        #[derive(Clone, Copy, Debug)]
         pub struct $name {
             pub data: [[f64; $size]; $size]
         }
@@ -11,6 +11,21 @@ macro_rules! define_matrix_struct {
               Self { data }
            }
         }
+
+        impl PartialEq for $name {
+            fn eq(&self, other: &Self) -> bool {
+                for i in 0..$size {
+                    for j in 0..$size {
+                        if (self.data[i][j] - other.data[i][j]).abs() > std::f64::EPSILON {
+                            return false
+                        }
+                    }
+                }
+                return true
+            }
+        }
+
+        impl Eq for $name {}
     };
 }
 
@@ -63,5 +78,35 @@ mod tests {
         assert_eq!(11.0, m.data[2][2]);
         assert_eq!(13.5, m.data[3][0]);
         assert_eq!(15.5, m.data[3][2]);
+    }
+
+    #[test]
+    fn matrix_equality() {
+        let data = [
+            [1.0, 2.0, 3.0, 4.0],
+            [5.0, 6.0, 7.0, 8.0],
+            [9.0, 8.0, 7.0, 6.0],
+            [5.0, 4.0, 3.0, 2.0]
+        ];
+        let a = Mat4x4::new(data);
+        let b = Mat4x4::new(data);
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn matrix_inequality() {
+        let a = Mat4x4::new([
+            [1.0, 2.0, 3.0, 4.0],
+            [5.0, 6.0, 7.0, 8.0],
+            [9.0, 8.0, 7.0, 6.0],
+            [5.0, 4.0, 3.0, 2.0]
+        ]);
+        let b = Mat4x4::new([
+            [2.0, 3.0, 4.0, 5.0],
+            [6.0, 7.0, 8.0, 9.0],
+            [8.0, 7.0, 6.0, 5.0],
+            [4.0, 3.0, 2.0, 1.0]
+        ]);
+        assert_ne!(a, b);
     }
 }
