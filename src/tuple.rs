@@ -16,6 +16,10 @@ impl Tuple {
     pub fn is_vector(&self) -> bool {
         self.w.abs() < std::f64::EPSILON
     }
+
+    pub fn magnitude(&self) -> f64 {
+        (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
+    }
 }
 
 impl Add for Tuple {
@@ -102,6 +106,10 @@ mod tests {
         assert!((t1.y - t2.y).abs() < std::f64::EPSILON);
         assert!((t1.z - t2.z).abs() < std::f64::EPSILON);
         assert!((t1.w - t2.w).abs() < std::f64::EPSILON);
+    }
+
+    fn assert_near(v1: f64, v2: f64) {
+        assert!((v1 - v2).abs() < std::f64::EPSILON);
     }
 
     #[test]
@@ -285,5 +293,14 @@ mod tests {
             },
             a / 2.0,
         );
+    }
+
+    #[test]
+    fn magnitude() {
+        assert_near(1.0, vector(1.0, 0.0, 0.0).magnitude());
+        assert_near(1.0, vector(0.0, 1.0, 0.0).magnitude());
+        assert_near(1.0, vector(0.0, 0.0, 1.0).magnitude());
+        assert_near(14.0_f64.sqrt(), vector(1.0, 2.0, 3.0).magnitude());
+        assert_near(14.0_f64.sqrt(), vector(-1.0, -2.0, -3.0).magnitude());
     }
 }
