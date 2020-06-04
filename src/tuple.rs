@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::{Add, Neg, Sub};
 
 #[derive(PartialEq, Debug)]
 pub struct Tuple {
@@ -44,6 +44,18 @@ impl Sub for Tuple {
     }
 }
 
+impl Neg for Tuple {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+            w: -self.w,
+        }
+    }
+}
 pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     Tuple { x, y, z, w: 1.0 }
 }
@@ -163,5 +175,31 @@ mod tests {
         let v1 = vector(3.0, 2.0, 1.0);
         let v2 = vector(5.0, 6.0, 7.0);
         assert_tuple_eq(vector(-2.0, -4.0, -6.0), v1 - v2);
+    }
+
+    #[test]
+    fn subtract_vector_from_zero_vector() {
+        let zero = vector(0.0, 0.0, 0.0);
+        let v = vector(1.0, -2.0, 3.0);
+        assert_tuple_eq(vector(-1.0, 2.0, -3.0), zero - v);
+    }
+
+    #[test]
+    fn negate_tuple() {
+        let a = Tuple {
+            x: 1.0,
+            y: -2.0,
+            z: 3.0,
+            w: -4.0,
+        };
+        assert_tuple_eq(
+            Tuple {
+                x: -1.0,
+                y: 2.0,
+                z: -3.0,
+                w: 4.0,
+            },
+            -a,
+        );
     }
 }
