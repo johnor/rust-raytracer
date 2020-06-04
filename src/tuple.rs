@@ -30,6 +30,10 @@ impl Tuple {
             w: self.w / m,
         }
     }
+
+    pub fn dot(&self, rhs: &Tuple) -> f64 {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w + rhs.w
+    }
 }
 
 impl Add for Tuple {
@@ -107,9 +111,7 @@ pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
 
 #[cfg(test)]
 mod tests {
-    use crate::tuple::point;
-    use crate::tuple::vector;
-    use crate::tuple::Tuple;
+    use crate::tuple::{point, vector, Tuple};
 
     fn assert_tuple_eq(t1: Tuple, t2: Tuple) {
         assert!((t1.x - t2.x).abs() < std::f64::EPSILON);
@@ -327,5 +329,12 @@ mod tests {
     #[test]
     fn magnitue_of_normalized_vector() {
         assert_near(1.0, vector(1.0, 2.0, 3.0).normalize().magnitude());
+    }
+
+    #[test]
+    fn dot_product_of_two_vectors() {
+        let a = vector(1.0, 2.0, 3.0);
+        let b = vector(2.0, 3.0, 4.0);
+        assert_near(20.0, Tuple::dot(&a, &b));
     }
 }
