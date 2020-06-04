@@ -20,6 +20,16 @@ impl Tuple {
     pub fn magnitude(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
     }
+
+    pub fn normalize(&self) -> Tuple {
+        let m = self.magnitude();
+        Tuple {
+            x: self.x / m,
+            y: self.y / m,
+            z: self.z / m,
+            w: self.w / m,
+        }
+    }
 }
 
 impl Add for Tuple {
@@ -302,5 +312,20 @@ mod tests {
         assert_near(1.0, vector(0.0, 0.0, 1.0).magnitude());
         assert_near(14.0_f64.sqrt(), vector(1.0, 2.0, 3.0).magnitude());
         assert_near(14.0_f64.sqrt(), vector(-1.0, -2.0, -3.0).magnitude());
+    }
+
+    #[test]
+    fn normalize_vector() {
+        assert_tuple_eq(vector(1.0, 0.0, 0.0), vector(4.0, 0.0, 0.0).normalize());
+        let a = 14.0_f64.sqrt();
+        assert_tuple_eq(
+            vector(1.0 / a, 2.0 / a, 3.0 / a),
+            vector(1.0, 2.0, 3.0).normalize(),
+        );
+    }
+
+    #[test]
+    fn magnitue_of_normalized_vector() {
+        assert_near(1.0, vector(1.0, 2.0, 3.0).normalize().magnitude());
     }
 }
