@@ -1,4 +1,4 @@
-use std::ops::{Add, Neg, Sub};
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(PartialEq, Debug)]
 pub struct Tuple {
@@ -56,6 +56,33 @@ impl Neg for Tuple {
         }
     }
 }
+
+impl Mul<f64> for Tuple {
+    type Output = Self;
+
+    fn mul(self, rhs: f64) -> Self {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+            w: self.w * rhs,
+        }
+    }
+}
+
+impl Div<f64> for Tuple {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self {
+        Self {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+            w: self.w / rhs,
+        }
+    }
+}
+
 pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     Tuple { x, y, z, w: 1.0 }
 }
@@ -200,6 +227,63 @@ mod tests {
                 w: 4.0,
             },
             -a,
+        );
+    }
+
+    #[test]
+    fn multiply_tuple_by_scalar() {
+        let a = Tuple {
+            x: 1.0,
+            y: -2.0,
+            z: 3.0,
+            w: -4.0,
+        };
+        assert_tuple_eq(
+            Tuple {
+                x: 3.5,
+                y: -7.0,
+                z: 10.5,
+                w: -14.0,
+            },
+            a * 3.5,
+        );
+    }
+
+    #[test]
+    fn multiply_tuple_by_fraction() {
+        let a = Tuple {
+            x: 1.0,
+            y: -2.0,
+            z: 3.0,
+            w: -4.0,
+        };
+        assert_tuple_eq(
+            Tuple {
+                x: 0.5,
+                y: -1.0,
+                z: 1.5,
+                w: -2.0,
+            },
+            a * 0.5,
+        );
+    }
+
+    #[test]
+    fn divide_tuple_by_scalar() {
+        let a = Tuple {
+            x: 1.0,
+            y: -2.0,
+            z: 3.0,
+            w: -4.0,
+        };
+        assert_tuple_eq(
+            Tuple {
+                x: 0.5,
+                y: -1.0,
+                z: 1.5,
+                w: -2.0,
+            },
+            a / 2.0,
         );
     }
 }
