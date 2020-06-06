@@ -9,6 +9,14 @@ pub struct Tuple {
 }
 
 impl Tuple {
+    pub fn from_array(a: [f64; 4]) -> Self {
+        Tuple {
+            x: a[0],
+            y: a[1],
+            z: a[2],
+            w: a[3],
+        }
+    }
     pub fn is_point(&self) -> bool {
         (self.w - 1.0).abs() < std::f64::EPSILON
     }
@@ -32,7 +40,7 @@ impl Tuple {
     }
 
     pub fn dot(&self, rhs: &Tuple) -> f64 {
-        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w + rhs.w
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 
     pub fn cross(&self, rhs: &Tuple) -> Tuple {
