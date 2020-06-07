@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Index, IndexMut, Mul};
 
 macro_rules! define_square_matrix_struct {
     ($name:ident, $order:expr) => {
@@ -27,6 +27,20 @@ macro_rules! define_square_matrix_struct {
         }
 
         impl Eq for $name {}
+
+        impl Index<usize> for $name {
+            type Output = [f64; $order];
+
+            fn index(&self, r: usize) -> &[f64; $order] {
+                &self.data[r]
+            }
+        }
+
+        impl IndexMut<usize> for $name {
+            fn index_mut(&mut self, r: usize) -> &mut [f64; $order] {
+                &mut self.data[r]
+            }
+        }
 
         impl Mul for $name {
             type Output = Self;
@@ -60,18 +74,18 @@ mod tests {
     #[test]
     fn create_2x2_matrix() {
         let m = Mat2x2::new([[-3.0, 5.0], [1.0, -2.0]]);
-        assert_eq!(-3.0, m.data[0][0]);
-        assert_eq!(5.0, m.data[0][1]);
-        assert_eq!(1.0, m.data[1][0]);
-        assert_eq!(-2.0, m.data[1][1]);
+        assert_eq!(-3.0, m[0][0]);
+        assert_eq!(5.0, m[0][1]);
+        assert_eq!(1.0, m[1][0]);
+        assert_eq!(-2.0, m[1][1]);
     }
 
     #[test]
     fn create_3x3_matrix() {
         let m = Mat3x3::new([[-3.0, 5.0, 0.0], [1.0, -2.0, -7.0], [0.0, 1.0, 1.0]]);
-        assert_eq!(-3.0, m.data[0][0]);
-        assert_eq!(-2.0, m.data[1][1]);
-        assert_eq!(1.0, m.data[2][2]);
+        assert_eq!(-3.0, m[0][0]);
+        assert_eq!(-2.0, m[1][1]);
+        assert_eq!(1.0, m[2][2]);
     }
 
     #[test]
@@ -82,13 +96,13 @@ mod tests {
             [9.0, 10.0, 11.0, 12.0],
             [13.5, 14.5, 15.5, 16.5],
         ]);
-        assert_eq!(1.0, m.data[0][0]);
-        assert_eq!(4.0, m.data[0][3]);
-        assert_eq!(5.5, m.data[1][0]);
-        assert_eq!(7.5, m.data[1][2]);
-        assert_eq!(11.0, m.data[2][2]);
-        assert_eq!(13.5, m.data[3][0]);
-        assert_eq!(15.5, m.data[3][2]);
+        assert_eq!(1.0, m[0][0]);
+        assert_eq!(4.0, m[0][3]);
+        assert_eq!(5.5, m[1][0]);
+        assert_eq!(7.5, m[1][2]);
+        assert_eq!(11.0, m[2][2]);
+        assert_eq!(13.5, m[3][0]);
+        assert_eq!(15.5, m[3][2]);
     }
 
     #[test]
