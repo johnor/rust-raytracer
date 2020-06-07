@@ -9,8 +9,21 @@ macro_rules! define_square_matrix_struct {
         }
 
         impl $name {
-            fn new(data: [[f64; $order]; $order]) -> Self {
+            pub fn new(data: [[f64; $order]; $order]) -> Self {
                 Self { data }
+            }
+
+            pub fn zero() -> Self {
+                let data: [[f64; $order]; $order] = [[0.0; $order]; $order];
+                Self::new(data)
+            }
+
+            pub fn identity() -> Self {
+                let mut result = Self::zero();
+                for i in 0..$order {
+                    result[i][i] = 1.0;
+                }
+                result
             }
         }
 
@@ -83,7 +96,7 @@ mod tests {
     use crate::matrix::Mat2x2;
     use crate::matrix::Mat3x3;
     use crate::matrix::Mat4x4;
-    use crate::tuple::point;
+    use crate::tuple::{point, Tuple};
 
     #[test]
     fn create_2x2_matrix() {
@@ -182,5 +195,34 @@ mod tests {
         ]);
         let b = point(1.0, 2.0, 3.0);
         assert_eq!(point(18.0, 24.0, 33.0), a * b);
+    }
+
+    #[test]
+    fn matrix_2x2_multiplied_by_identity_matrix() {
+        let a = Mat2x2::new([[0.0, 1.0], [1.0, 2.0]]);
+        assert_eq!(a, a * Mat2x2::identity());
+    }
+
+    #[test]
+    fn matrix_3x3_multiplied_by_identity_matrix() {
+        let a = Mat3x3::new([[0.0, 1.0, 2.0], [1.0, 2.0, 4.0], [2.0, 4.0, 8.0]]);
+        assert_eq!(a, a * Mat3x3::identity());
+    }
+
+    #[test]
+    fn matrix_4x4_multiplied_by_identity_matrix() {
+        let a = Mat4x4::new([
+            [0.0, 1.0, 2.0, 4.0],
+            [1.0, 2.0, 4.0, 8.0],
+            [2.0, 4.0, 8.0, 16.0],
+            [4.0, 8.0, 16.0, 32.0],
+        ]);
+        assert_eq!(a, a * Mat4x4::identity());
+    }
+
+    #[test]
+    fn identity_matrix_multipled_by_tuple() {
+        let a = Tuple::new(1.0, 2.0, 3.0, 4.0);
+        assert_eq!(a, Mat4x4::identity() * a);
     }
 }

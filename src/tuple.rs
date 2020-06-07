@@ -9,6 +9,10 @@ pub struct Tuple {
 }
 
 impl Tuple {
+    pub fn new(x: f64, y: f64, z: f64, w: f64) -> Self {
+        Tuple { x, y, z, w }
+    }
+
     pub fn from_array(a: [f64; 4]) -> Self {
         Tuple {
             x: a[0],
@@ -17,6 +21,7 @@ impl Tuple {
             w: a[3],
         }
     }
+
     pub fn is_point(&self) -> bool {
         (self.w - 1.0).abs() < std::f64::EPSILON
     }
