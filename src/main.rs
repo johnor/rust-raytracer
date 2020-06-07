@@ -23,38 +23,29 @@ fn tick(env: &Environment, proj: Projectile) -> Projectile {
 }
 
 fn main() {
-    println!("Hello, world!");
-    let t = Tuple {
-        x: 1.0,
-        y: 1.0,
-        z: 1.0,
-        w: 1.0,
-    };
-    println!("A tuple: {:?}", t);
-    println!("Is point: {}, is vector: {}", t.is_point(), t.is_vector());
-
-    let t2 = Tuple {
-        x: 2.0,
-        w: 2.0,
-        ..t
-    };
-    println!("A tuple: {:?}", t2);
-    println!("Is point: {}, is vector: {}", t2.is_point(), t2.is_vector());
-
     let mut proj = Projectile {
         pos: tuple::point(0.0, 1.0, 0.0),
-        vel: tuple::vector(1.0, 1.0, 0.0).normalize(),
+        vel: tuple::vector(1.0, 1.8, 0.0).normalize() * 11.25,
     };
     let env = Environment {
         gravity: tuple::vector(0.0, -0.1, 0.0),
         wind: tuple::vector(-0.01, 0.0, 0.0),
     };
+    let mut canvas = canvas::Canvas::new(900, 560);
     let mut ticks = 0;
+
+    let red = color::Color::new(1.0, 0.0, 0.0);
 
     while proj.pos.y > 0.0 {
         println!("Projectile pos: {:?}", proj.pos);
+        canvas.set_pixel(
+            proj.pos.x.round() as usize,
+            canvas.height() - proj.pos.y.round() as usize,
+            red,
+        );
         proj = tick(&env, proj);
         ticks += 1;
     }
     println!("Ticks: {}", ticks);
+    canvas.write_ppm("projectile.ppm".to_string());
 }
