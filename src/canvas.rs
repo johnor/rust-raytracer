@@ -1,12 +1,12 @@
 use crate::color::Color;
 use std::vec::Vec;
 
-struct Canvas {
+pub struct Canvas {
     pixels: Vec<Vec<Color>>,
 }
 
 impl Canvas {
-    fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: usize, height: usize) -> Self {
         Canvas {
             pixels: vec![
                 vec![
@@ -22,11 +22,11 @@ impl Canvas {
         }
     }
 
-    fn width(&self) -> usize {
+    pub fn width(&self) -> usize {
         self.pixels.len()
     }
 
-    fn height(&self) -> usize {
+    pub fn height(&self) -> usize {
         if self.pixels.is_empty() {
             0
         } else {
@@ -34,11 +34,11 @@ impl Canvas {
         }
     }
 
-    fn get_pixel(&self, x: usize, y: usize) -> Color {
+    pub fn get_pixel(&self, x: usize, y: usize) -> Color {
         self.pixels[x][y]
     }
 
-    fn set_pixel(&mut self, x: usize, y: usize, c: Color) {
+    pub fn set_pixel(&mut self, x: usize, y: usize, c: Color) {
         self.pixels[x][y] = c
     }
 
@@ -64,7 +64,7 @@ impl Canvas {
         result
     }
 
-    fn write_ppm(&self, file: String) {
+    pub fn write_ppm(&self, file: String) {
         use std::fs;
         let data = self.to_ppm();
         fs::write(file, data).expect("Unable to write file");
