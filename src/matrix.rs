@@ -25,6 +25,16 @@ macro_rules! define_square_matrix_struct {
                 }
                 result
             }
+
+            pub fn transpose(&self) -> Self {
+                let mut data = [[0.0; $order]; $order];
+                for r in 0..$order {
+                    for c in 0..$order {
+                        data[c][r] = self.data[r][c]
+                    }
+                }
+                Self::new(data)
+            }
         }
 
         impl PartialEq for $name {
@@ -224,5 +234,22 @@ mod tests {
     fn identity_matrix_multipled_by_tuple() {
         let a = Tuple::new(1.0, 2.0, 3.0, 4.0);
         assert_eq!(a, Mat4x4::identity() * a);
+    }
+
+    #[test]
+    fn transpose_a_matrix() {
+        let a = Mat4x4::new([
+            [0.0, 9.0, 3.0, 0.0],
+            [9.0, 8.0, 0.0, 8.0],
+            [1.0, 8.0, 5.0, 3.0],
+            [0.0, 0.0, 5.0, 8.0],
+        ]);
+        let expected = Mat4x4::new([
+            [0.0, 9.0, 1.0, 0.0],
+            [9.0, 8.0, 8.0, 0.0],
+            [3.0, 0.0, 5.0, 5.0],
+            [0.0, 8.0, 3.0, 8.0],
+        ]);
+        assert_eq!(expected, a.transpose());
     }
 }
