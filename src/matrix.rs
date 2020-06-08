@@ -231,7 +231,7 @@ mod tests {
     }
 
     #[test]
-    fn identity_matrix_multipled_by_tuple() {
+    fn identity_matrix_multiplied_by_tuple() {
         let a = Tuple::new(1.0, 2.0, 3.0, 4.0);
         assert_eq!(a, Mat4x4::identity() * a);
     }
@@ -251,5 +251,11 @@ mod tests {
             [0.0, 8.0, 3.0, 8.0],
         ]);
         assert_eq!(expected, a.transpose());
+    }
+
+    #[test]
+    fn transpose_identify_matrix() {
+        let a = Mat4x4::identity();
+        assert_eq!(a, a.transpose());
     }
 }
