@@ -1,4 +1,5 @@
 use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::vec::Vec;
 
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub struct Tuple {
@@ -13,7 +14,7 @@ impl Tuple {
         Tuple { x, y, z, w }
     }
 
-    pub fn from_array(a: [f64; 4]) -> Self {
+    pub fn from_vec(a: Vec<f64>) -> Self {
         Tuple {
             x: a[0],
             y: a[1],
