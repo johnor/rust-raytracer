@@ -1,19 +1,14 @@
-mod canvas;
-mod color;
-mod matrix;
-mod ray;
-mod tuple;
-
-use tuple::Tuple;
+extern crate rust_raytracer;
+use rust_raytracer::*;
 
 struct Projectile {
-    pub pos: Tuple,
-    pub vel: Tuple,
+    pub pos: tuple::Tuple,
+    pub vel: tuple::Tuple,
 }
 
 struct Environment {
-    pub gravity: Tuple,
-    pub wind: Tuple,
+    pub gravity: tuple::Tuple,
+    pub wind: tuple::Tuple,
 }
 
 fn tick(env: &Environment, proj: Projectile) -> Projectile {
