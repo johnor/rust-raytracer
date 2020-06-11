@@ -49,13 +49,13 @@ impl Canvas {
             height = self.height(),
         );
         for y in 0..self.height() {
-            let mut row_str = vec!["0".to_string(); self.width()];
+            let mut row_str = Vec::new();
             for x in 0..self.width() {
                 let p = self.get_pixel(x, y);
                 let r = self.convert(p.r);
                 let g = self.convert(p.g);
                 let b = self.convert(p.b);
-                row_str[x] = format!("{} {} {}", r, g, b);
+                row_str.push(format!("{} {} {}", r, g, b));
             }
             result.push_str(&row_str.join(" "));
             result.push_str("\n");
