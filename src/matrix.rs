@@ -95,7 +95,7 @@ impl Mul<Tuple> for Mat4x4 {
     fn mul(self, rhs: Tuple) -> Tuple {
         let mut res = [0.0; 4];
         for r in 0..4 {
-            res[r] = Tuple::from_array(self[r]).dot(&rhs);
+            res[r] = Tuple::from_array(self[r]).dot(rhs);
         }
         Tuple::from_array(res)
     }

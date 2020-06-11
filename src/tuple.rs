@@ -44,11 +44,11 @@ impl Tuple {
         }
     }
 
-    pub fn dot(&self, rhs: &Tuple) -> f64 {
+    pub fn dot(&self, rhs: Tuple) -> f64 {
         self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
     }
 
-    pub fn cross(&self, rhs: &Tuple) -> Tuple {
+    pub fn cross(&self, rhs: Tuple) -> Tuple {
         vector(
             self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
@@ -356,14 +356,14 @@ mod tests {
     fn dot_product_of_two_vectors() {
         let a = vector(1.0, 2.0, 3.0);
         let b = vector(2.0, 3.0, 4.0);
-        assert_near(20.0, Tuple::dot(&a, &b));
+        assert_near(20.0, Tuple::dot(&a, b));
     }
 
     #[test]
     fn cross_product_of_two_vectors() {
         let a = vector(1.0, 2.0, 3.0);
         let b = vector(2.0, 3.0, 4.0);
-        assert_tuple_eq(vector(-1.0, 2.0, -1.0), Tuple::cross(&a, &b));
-        assert_tuple_eq(vector(1.0, -2.0, 1.0), Tuple::cross(&b, &a));
+        assert_tuple_eq(vector(-1.0, 2.0, -1.0), Tuple::cross(&a, b));
+        assert_tuple_eq(vector(1.0, -2.0, 1.0), Tuple::cross(&b, a));
     }
 }

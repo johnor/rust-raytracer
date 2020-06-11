@@ -15,9 +15,9 @@ impl Sphere {
 
     pub fn intersects(&self, ray: Ray) -> Vec<f64> {
         let sphere_to_ray = ray.origin - self.origin;
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2. * ray.direction.dot(&sphere_to_ray);
-        let c = sphere_to_ray.dot(&sphere_to_ray) - 1.0;
+        let a = ray.direction.dot(ray.direction);
+        let b = 2. * ray.direction.dot(sphere_to_ray);
+        let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
 
         let discriminant = b * b - 4.0 * a * c;
 
