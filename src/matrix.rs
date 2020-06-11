@@ -191,6 +191,14 @@ mod tests {
     use crate::matrix::{Mat2x2, Mat3x3, Mat4x4};
     use crate::tuple::{point, Tuple};
 
+    fn assert_mat4x4_near(a: Mat4x4, b: Mat4x4) {
+        for r in 0..Mat4x4::order() {
+            for c in 0..Mat4x4::order() {
+                assert!((b[r][c] - a[r][c]).abs() < 0.00001);
+            }
+        }
+    }
+
     #[test]
     fn create_2x2_matrix() {
         let m = Mat2x2::new([[-3.0, 5.0], [1.0, -2.0]]);
@@ -453,10 +461,54 @@ mod tests {
         assert_eq!(-160. / 532., b[3][2]);
         assert_eq!(105., a.cofactor(3, 2));
         assert_eq!(105. / 532., b[2][3]);
-        for r in 0..Mat4x4::order() {
-            for c in 0..Mat4x4::order() {
-                assert!((b[r][c] - expected[r][c]).abs() < 0.00001);
-            }
+        assert_mat4x4_near(expected, b);
+    }
+
+    #[test]
+    fn inverse_of_another_matrix() {
+        let a = Mat4x4::new([
+            [8., -5., 9., 2.],
+            [7., 5., 6., 1.],
+            [-6., 0., 9., 6.],
+            [-3., 0., -9., -4.],
+        ]);
+        let expected = Mat4x4::new([
+            [-0.15385, -0.15385, -0.28205, -0.53846],
+            [-0.07692, 0.12308, 0.02564, 0.03077],
+            [0.35897, 0.35897, 0.43590, 0.92308],
+            [-0.69231, -0.69231, -0.76923, -1.92308],
+        ]);
+        assert_mat4x4_near(expected, a.inverse().unwrap());
+    }
+
+    #[test]
+    fn inverse_of_a_third_matrix() {
+        let a = Mat4x4::new([
+            [9., 3., 0., 9.],
+            [-5., -2., -6., -3.],
+            [-4., 9., 6., 4.],
+            [-7., 6., 6., 2.],
+        ]);
+        let expected = Mat4x4::new([
+            [-0.04074, -0.07778, 0.14444, -0.22222],
+            [-0.07778, 0.03333, 0.36667, -0.33333],
+            [-0.02901, -0.14630, -0.10926, 0.12963],
+            [0.17778, 0.06667, -0.26667, 0.33333],
+        ]);
+        assert_mat4x4_near(expected, a.inverse().unwrap());
+    }
+
+    #[test]
+    fn inverse_of_a_noninvertible_matrix() {
+        let a = Mat4x4::new([
+            [-4., 2., -2., -3.],
+            [9., 6., 2., 6.],
+            [0., -5., 1., -5.],
+            [0., 0., 0., 0.],
+        ]);
+        match a.inverse() {
+            Err(s) => assert_eq!("Matrix is not invertible", s),
+            _ => assert!(false),
         }
     }
 
