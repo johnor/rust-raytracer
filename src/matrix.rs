@@ -157,7 +157,7 @@ impl Mat4x4 {
         self.determinant().abs() > std::f64::EPSILON
     }
 
-    fn inverse(&self) -> Result<Self, &str> {
+    pub fn inverse(&self) -> Result<Self, &str> {
         if self.invertible() {
             let mut res = Mat4x4::zero();
             let det = self.determinant();
