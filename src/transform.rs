@@ -175,4 +175,30 @@ mod tests {
         let m = skew(0., 0., 0., 0., 0., 1.);
         assert_tuple_eq(point(2., 3., 7.), m * point(2., 3., 4.))
     }
+
+    #[test]
+    fn individual_transformations_applied_in_sequence() {
+        let p = point(1., 0., 1.);
+        let a = rotate_x(std::f64::consts::PI / 2.);
+        let b = scale(5., 5., 5.);
+        let c = translate(10., 5., 7.);
+        let p2 = a * p;
+        let p3 = b * p2;
+        let p4 = c * p3;
+
+        assert_tuple_eq(point(1., -1., 0.), p2);
+        assert_tuple_eq(point(5., -5., 0.), p3);
+        assert_tuple_eq(point(15., 0., 7.), p4);
+    }
+
+    #[test]
+    fn chained_transformations_applied_in_reverse_order() {
+        let p = point(1., 0., 1.);
+        let a = rotate_x(std::f64::consts::PI / 2.);
+        let b = scale(5., 5., 5.);
+        let c = translate(10., 5., 7.);
+        let t = c * b * a;
+
+        assert_tuple_eq(point(15., 0., 7.), t * p);
+    }
 }

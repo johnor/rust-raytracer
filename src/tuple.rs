@@ -135,10 +135,11 @@ pub mod test_utils {
     use crate::tuple::Tuple;
 
     pub fn assert_tuple_eq(t1: Tuple, t2: Tuple) {
-        assert!((t1.x - t2.x).abs() < std::f64::EPSILON);
-        assert!((t1.y - t2.y).abs() < std::f64::EPSILON);
-        assert!((t1.z - t2.z).abs() < std::f64::EPSILON);
-        assert!((t1.w - t2.w).abs() < std::f64::EPSILON);
+        let eps = 0.0000000001;
+        assert!((t1.x - t2.x).abs() < eps);
+        assert!((t1.y - t2.y).abs() < eps);
+        assert!((t1.z - t2.z).abs() < eps);
+        assert!((t1.w - t2.w).abs() < eps);
     }
 }
 
