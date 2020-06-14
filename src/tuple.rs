@@ -131,15 +131,21 @@ pub fn vector(x: f64, y: f64, z: f64) -> Tuple {
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::tuple::{point, vector, Tuple};
+pub mod test_utils {
+    use crate::tuple::Tuple;
 
-    fn assert_tuple_eq(t1: Tuple, t2: Tuple) {
+    pub fn assert_tuple_eq(t1: Tuple, t2: Tuple) {
         assert!((t1.x - t2.x).abs() < std::f64::EPSILON);
         assert!((t1.y - t2.y).abs() < std::f64::EPSILON);
         assert!((t1.z - t2.z).abs() < std::f64::EPSILON);
         assert!((t1.w - t2.w).abs() < std::f64::EPSILON);
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::tuple::test_utils::assert_tuple_eq;
+    use crate::tuple::{point, vector, Tuple};
 
     fn assert_near(v1: f64, v2: f64) {
         assert!((v1 - v2).abs() < std::f64::EPSILON);
