@@ -1,25 +1,23 @@
 use crate::intersections::Intersection;
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
-use crate::tuple::{point, Tuple};
+use crate::tuple::point;
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
-    pub origin: Tuple,
     pub transform: Mat4x4,
 }
 
 impl Sphere {
     pub fn new() -> Self {
         Sphere {
-            origin: point(0.0, 0.0, 0.0),
             transform: Mat4x4::identity(),
         }
     }
 
     pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let ray2 = self.transform.inverse().unwrap() * ray;
-        let sphere_to_ray = ray2.origin - self.origin;
+        let sphere_to_ray = ray2.origin - point(0.0, 0.0, 0.0);
         let a = ray2.direction.dot(ray2.direction);
         let b = 2. * ray2.direction.dot(sphere_to_ray);
         let c = sphere_to_ray.dot(sphere_to_ray) - 1.0;
