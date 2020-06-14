@@ -34,10 +34,12 @@ impl Canvas {
         }
     }
 
+    // x: column, y: row
     pub fn get_pixel(&self, x: usize, y: usize) -> Color {
         self.pixels[x][y]
     }
 
+    // x: column, y: row
     pub fn set_pixel(&mut self, x: usize, y: usize, c: Color) {
         self.pixels[x][y] = c
     }
