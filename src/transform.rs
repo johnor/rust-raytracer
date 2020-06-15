@@ -33,6 +33,7 @@ pub fn rotate_y(r: f64) -> Mat4x4 {
         [0., 0., 0., 1.],
     ])
 }
+
 pub fn rotate_z(r: f64) -> Mat4x4 {
     Mat4x4::new([
         [f64::cos(r), -f64::sin(r), 0., 0.],
@@ -42,9 +43,18 @@ pub fn rotate_z(r: f64) -> Mat4x4 {
     ])
 }
 
+pub fn skew(xy: f64, xz: f64, yx: f64, yz: f64, zx: f64, zy: f64) -> Mat4x4 {
+    Mat4x4::new([
+        [1., xy, xz, 0.],
+        [yx, 1., yz, 0.],
+        [zx, zy, 1., 0.],
+        [0., 0., 0., 1.],
+    ])
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::transform::{rotate_x, rotate_y, rotate_z, scale, translate};
+    use crate::transform::{rotate_x, rotate_y, rotate_z, scale, skew, translate};
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
 
@@ -128,5 +138,67 @@ mod tests {
         let mfq = rotate_z(std::f64::consts::PI / 2.);
         assert_tuple_eq(point(-2_f64.sqrt() / 2., 2_f64.sqrt() / 2., 0.), mhq * p);
         assert_tuple_eq(point(-1., 0., 0.), mfq * p);
+    }
+
+    #[test]
+    fn skew_x_in_proportion_to_y() {
+        let m = skew(1., 0., 0., 0., 0., 0.);
+        assert_tuple_eq(point(5., 3., 4.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn skew_x_in_proportion_to_z() {
+        let m = skew(0., 1., 0., 0., 0., 0.);
+        assert_tuple_eq(point(6., 3., 4.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn skew_y_in_proportion_to_x() {
+        let m = skew(0., 0., 1., 0., 0., 0.);
+        assert_tuple_eq(point(2., 5., 4.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn skew_y_in_proportion_to_z() {
+        let m = skew(0., 0., 0., 1., 0., 0.);
+        assert_tuple_eq(point(2., 7., 4.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn skew_z_in_proportion_to_x() {
+        let m = skew(0., 0., 0., 0., 1., 0.);
+        assert_tuple_eq(point(2., 3., 6.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn skew_z_in_proportion_to_y() {
+        let m = skew(0., 0., 0., 0., 0., 1.);
+        assert_tuple_eq(point(2., 3., 7.), m * point(2., 3., 4.))
+    }
+
+    #[test]
+    fn individual_transformations_applied_in_sequence() {
+        let p = point(1., 0., 1.);
+        let a = rotate_x(std::f64::consts::PI / 2.);
+        let b = scale(5., 5., 5.);
+        let c = translate(10., 5., 7.);
+        let p2 = a * p;
+        let p3 = b * p2;
+        let p4 = c * p3;
+
+        assert_tuple_eq(point(1., -1., 0.), p2);
+        assert_tuple_eq(point(5., -5., 0.), p3);
+        assert_tuple_eq(point(15., 0., 7.), p4);
+    }
+
+    #[test]
+    fn chained_transformations_applied_in_reverse_order() {
+        let p = point(1., 0., 1.);
+        let a = rotate_x(std::f64::consts::PI / 2.);
+        let b = scale(5., 5., 5.);
+        let c = translate(10., 5., 7.);
+        let t = c * b * a;
+
+        assert_tuple_eq(point(15., 0., 7.), t * p);
     }
 }
