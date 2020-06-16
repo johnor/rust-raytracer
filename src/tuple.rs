@@ -1,3 +1,4 @@
+use crate::matrix::Mat4x4;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(PartialEq, Debug, Copy, Clone)]
@@ -122,6 +123,18 @@ impl Div<f64> for Tuple {
     }
 }
 
+impl Mul<Tuple> for Mat4x4 {
+    type Output = Tuple;
+
+    fn mul(self, rhs: Tuple) -> Tuple {
+        let mut res = [0.0; 4];
+        for r in 0..4 {
+            res[r] = Tuple::from_array(self[r]).dot(rhs);
+        }
+        Tuple::from_array(res)
+    }
+}
+
 pub fn point(x: f64, y: f64, z: f64) -> Tuple {
     Tuple { x, y, z, w: 1.0 }
 }
@@ -145,6 +158,7 @@ pub mod test_utils {
 
 #[cfg(test)]
 mod tests {
+    use crate::matrix::Mat4x4;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector, Tuple};
 
@@ -372,5 +386,17 @@ mod tests {
         let b = vector(2.0, 3.0, 4.0);
         assert_tuple_eq(vector(-1.0, 2.0, -1.0), Tuple::cross(&a, b));
         assert_tuple_eq(vector(1.0, -2.0, 1.0), Tuple::cross(&b, a));
+    }
+
+    #[test]
+    fn matrix_multiplied_by_tuple() {
+        let a = Mat4x4::new([
+            [1.0, 2.0, 3.0, 4.0],
+            [2.0, 4.0, 4.0, 2.0],
+            [8.0, 6.0, 4.0, 1.0],
+            [0.0, 0.0, 0.0, 1.0],
+        ]);
+        let b = point(1.0, 2.0, 3.0);
+        assert_eq!(point(18.0, 24.0, 33.0), a * b);
     }
 }
