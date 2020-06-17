@@ -1,7 +1,8 @@
 use crate::intersections::Intersection;
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
-use crate::tuple::point;
+use crate::shape::Shape;
+use crate::tuple::{point, Tuple};
 
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
@@ -40,12 +41,25 @@ impl Default for Sphere {
     }
 }
 
+impl Shape for Sphere {
+    fn normal(&self, wp: Tuple) -> Tuple {
+        let tinv = self.transform.inverse().unwrap();
+        let on = (tinv * wp) - point(0., 0., 0.);
+        let mut wn = tinv.transpose() * on;
+        wn.w = 0.;
+        wn.normalize()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
+    use crate::shape::Shape;
     use crate::sphere::Sphere;
     use crate::transform;
+    use crate::transform::translate;
+    use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
 
     #[test]
@@ -145,5 +159,51 @@ mod tests {
 
         let xs = s.intersect(r);
         assert_eq!(0, xs.len());
+    }
+
+    #[test]
+    fn normal_on_a_sphere_at_a_point_on_the_x_axis() {
+        let s = Sphere::new();
+        assert_tuple_eq(vector(1., 0., 0.), s.normal(point(1., 0., 0.)));
+    }
+
+    #[test]
+    fn normal_on_a_sphere_at_a_point_on_the_y_axis() {
+        let s = Sphere::new();
+        assert_tuple_eq(vector(0., 1., 0.), s.normal(point(0., 1., 0.)));
+    }
+
+    #[test]
+    fn normal_on_a_sphere_at_a_point_on_the_z_axis() {
+        let s = Sphere::new();
+        assert_tuple_eq(vector(0., 0., 1.), s.normal(point(0., 0., 1.)));
+    }
+
+    #[test]
+    fn normal_on_a_sphere_at_a_nonaxial_point() {
+        let s = Sphere::new();
+        let v = 3_f64.sqrt() / 3.;
+        assert_tuple_eq(vector(v, v, v), s.normal(point(v, v, v)));
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_translated_sphere() {
+        let mut s = Sphere::new();
+        s.transform = s.transform * transform::translate(0., 1., 0.);
+        assert_tuple_eq(
+            vector(0., 0.70711, -0.70711),
+            s.normal(point(0., 1.70711, -0.70711)),
+        );
+    }
+
+    #[test]
+    fn computing_the_normal_on_a_transformed_sphere() {
+        let mut s = Sphere::new();
+        let m = transform::scale(1., 0.5, 1.) * transform::rotate_z(std::f64::consts::PI / 5.);
+        s.transform = s.transform * m;
+        assert_tuple_eq(
+            vector(0., 0.97014, -0.24254),
+            s.normal(point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.)),
+        );
     }
 }
