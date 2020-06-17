@@ -174,18 +174,6 @@ impl Mat4x4 {
     }
 }
 
-impl Mul<Tuple> for Mat4x4 {
-    type Output = Tuple;
-
-    fn mul(self, rhs: Tuple) -> Tuple {
-        let mut res = [0.0; 4];
-        for r in 0..4 {
-            res[r] = Tuple::from_array(self[r]).dot(rhs);
-        }
-        Tuple::from_array(res)
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::matrix::{Mat2x2, Mat3x3, Mat4x4};
@@ -284,18 +272,6 @@ mod tests {
             [16.0, 26.0, 46.0, 42.0],
         ]);
         assert_eq!(expected, a * b);
-    }
-
-    #[test]
-    fn matrix_multiplied_by_tuple() {
-        let a = Mat4x4::new([
-            [1.0, 2.0, 3.0, 4.0],
-            [2.0, 4.0, 4.0, 2.0],
-            [8.0, 6.0, 4.0, 1.0],
-            [0.0, 0.0, 0.0, 1.0],
-        ]);
-        let b = point(1.0, 2.0, 3.0);
-        assert_eq!(point(18.0, 24.0, 33.0), a * b);
     }
 
     #[test]
