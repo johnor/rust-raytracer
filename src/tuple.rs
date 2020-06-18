@@ -148,7 +148,7 @@ pub mod test_utils {
     use crate::tuple::Tuple;
 
     pub fn assert_tuple_eq(t1: Tuple, t2: Tuple) {
-        let eps = 0.0000000001;
+        let eps = 0.00001;
         assert!((t1.x - t2.x).abs() < eps);
         assert!((t1.y - t2.y).abs() < eps);
         assert!((t1.z - t2.z).abs() < eps);

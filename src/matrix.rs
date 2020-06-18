@@ -1,4 +1,3 @@
-use crate::tuple::Tuple;
 use std::ops::{Index, IndexMut, Mul};
 
 macro_rules! define_square_matrix_struct {
