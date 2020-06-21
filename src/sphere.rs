@@ -1,4 +1,5 @@
 use crate::intersections::Intersection;
+use crate::materials::Material;
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
 use crate::shape::Shape;
@@ -7,12 +8,14 @@ use crate::tuple::{point, Tuple};
 #[derive(Debug, PartialEq)]
 pub struct Sphere {
     pub transform: Mat4x4,
+    pub material: Material,
 }
 
 impl Sphere {
     pub fn new() -> Self {
         Sphere {
             transform: Mat4x4::identity(),
+            material: Material::new(),
         }
     }
 
@@ -53,12 +56,12 @@ impl Shape for Sphere {
 
 #[cfg(test)]
 mod tests {
+    use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
     use crate::shape::Shape;
     use crate::sphere::Sphere;
     use crate::transform;
-    use crate::transform::translate;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
 
@@ -205,5 +208,21 @@ mod tests {
             vector(0., 0.97014, -0.24254),
             s.normal(point(0., 2_f64.sqrt() / 2., -2_f64.sqrt() / 2.)),
         );
+    }
+
+    #[test]
+    fn sphere_has_default_material() {
+        let s = Sphere::new();
+        let m = s.material;
+        assert_eq!(Material::new(), m);
+    }
+
+    #[test]
+    fn sphere_may_be_assigned_a_material() {
+        let mut s = Sphere::new();
+        let mut m = Material::new();
+        m.ambient = 1.;
+        s.material = m;
+        assert_eq!(m, s.material);
     }
 }
