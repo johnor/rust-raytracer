@@ -56,6 +56,10 @@ impl Tuple {
             self.x * rhs.y - self.y * rhs.x,
         )
     }
+
+    pub fn reflect(&self, normal: Tuple) -> Tuple {
+        *self - normal * 2. * self.dot(normal)
+    }
 }
 
 impl Add for Tuple {
@@ -398,5 +402,19 @@ mod tests {
         ]);
         let b = point(1.0, 2.0, 3.0);
         assert_eq!(point(18.0, 24.0, 33.0), a * b);
+    }
+
+    #[test]
+    fn reflecting_a_vector_approaching_at_45_deg() {
+        let v = vector(1., -1., 0.);
+        let n = vector(0., 1., 0.);
+        assert_tuple_eq(vector(1., 1., 0.), v.reflect(n));
+    }
+
+    #[test]
+    fn reflecting_a_vector_off_a_slanted_surface() {
+        let v = vector(0., -1., 0.);
+        let n = vector(2_f64.sqrt() / 2., 2_f64.sqrt() / 2., 0.);
+        assert_tuple_eq(vector(1., 0., 0.), v.reflect(n));
     }
 }
