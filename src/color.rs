@@ -66,9 +66,13 @@ pub mod test_utils {
     use crate::color::Color;
 
     pub fn assert_color_eq(c1: Color, c2: Color) {
-        assert!((c1.r - c2.r).abs() < std::f64::EPSILON);
-        assert!((c1.g - c2.g).abs() < std::f64::EPSILON);
-        assert!((c1.b - c2.b).abs() < std::f64::EPSILON);
+        assert_color_near(c1, c2, std::f64::EPSILON);
+    }
+
+    pub fn assert_color_near(c1: Color, c2: Color, tol: f64) {
+        assert!((c1.r - c2.r).abs() < tol);
+        assert!((c1.g - c2.g).abs() < tol);
+        assert!((c1.b - c2.b).abs() < tol);
     }
 }
 
