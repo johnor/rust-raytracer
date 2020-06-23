@@ -43,10 +43,7 @@ impl Camera {
 mod tests {
     use crate::camera::Camera;
     use crate::matrix::Mat4x4;
-
-    fn assert_near(v1: f64, v2: f64) {
-        assert!((v1 - v2).abs() < std::f64::EPSILON);
-    }
+    use crate::test_utils::assert_near;
 
     #[test]
     fn constructing_a_camera() {

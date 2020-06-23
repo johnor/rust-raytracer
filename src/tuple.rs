@@ -163,12 +163,9 @@ pub mod test_utils {
 #[cfg(test)]
 mod tests {
     use crate::matrix::Mat4x4;
+    use crate::test_utils::assert_near;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector, Tuple};
-
-    fn assert_near(v1: f64, v2: f64) {
-        assert!((v1 - v2).abs() < std::f64::EPSILON);
-    }
 
     #[test]
     fn tuple_with_w1_is_a_point() {
