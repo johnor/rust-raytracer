@@ -29,9 +29,9 @@ fn main() {
             let ray = ray::Ray::new(ray_origin, (pos_at_wall - ray_origin).normalize());
             let xs = shape.intersect(ray);
             let hit = intersections::hit(xs);
-            if hit.is_some() {
-                let point = ray.position(hit.unwrap().t);
-                let normal = hit.unwrap().object.normal(point);
+            if let Some(intersection) = hit {
+                let point = ray.position(intersection.t);
+                let normal = intersection.object.normal(point);
                 let eye = -ray.direction;
                 let color = hit
                     .unwrap()
