@@ -10,3 +10,5 @@ pub mod shape;
 pub mod sphere;
 pub mod transform;
 pub mod tuple;
+
+mod test_utils;
