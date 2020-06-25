@@ -46,6 +46,12 @@ impl Material {
     }
 }
 
+impl Default for Material {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::color::test_utils::assert_color_near;
@@ -56,7 +62,7 @@ mod tests {
 
     #[test]
     fn defaut_material() {
-        let m = Material::new();
+        let m = Material::default();
         assert_eq!(Color::new(1., 1., 1.), m.color);
         assert_eq!(0.1, m.ambient);
         assert_eq!(0.9, m.diffuse);
