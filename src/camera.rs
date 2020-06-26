@@ -1,4 +1,6 @@
 use crate::matrix::Mat4x4;
+use crate::ray::Ray;
+use crate::tuple::point;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
@@ -37,13 +39,32 @@ impl Camera {
             half_height,
         }
     }
+    pub fn ray_for_pixel(&self, px: u32, py: u32) -> Ray {
+        let xoffset = (px as f64 + 0.5) * self.pixel_size;
+        let yoffset = (py as f64 + 0.5) * self.pixel_size;
+
+        let world_x = self.half_width - xoffset;
+        let world_y = self.half_height - yoffset;
+
+        let inv = self
+            .transform
+            .inverse()
+            .expect("Could not get the inverse camera transform");
+        let pixel = inv * point(world_x, world_y, -1.);
+        let origin = inv * point(0., 0., 0.);
+        let direction = (pixel - origin).normalize();
+
+        Ray::new(origin, direction)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::camera::Camera;
     use crate::matrix::Mat4x4;
-    use crate::test_utils::assert_near;
+    use crate::test_utils::{assert_near, assert_tuple_near};
+    use crate::transform::{rotate_y, translate};
+    use crate::tuple::{point, vector};
 
     #[test]
     fn constructing_a_camera() {
@@ -68,5 +89,34 @@ mod tests {
     fn pixel_size_for_vertical_canvas() {
         let c = Camera::new(125, 200, std::f64::consts::PI / 2.);
         assert_near(0.01, c.pixel_size);
+    }
+
+    #[test]
+    fn constructing_ray_through_center_of_canvas() {
+        let c = Camera::new(201, 101, std::f64::consts::PI / 2.);
+        let r = c.ray_for_pixel(100, 50);
+        assert_tuple_near(point(0., 0., 0.), r.origin, 0.00001);
+        assert_tuple_near(vector(0., 0., -1.), r.direction, 0.00001);
+    }
+
+    #[test]
+    fn constructing_ray_through_corner_of_canvas() {
+        let c = Camera::new(201, 101, std::f64::consts::PI / 2.);
+        let r = c.ray_for_pixel(0, 0);
+        assert_tuple_near(point(0., 0., 0.), r.origin, 0.00001);
+        assert_tuple_near(vector(0.66519, 0.33259, -0.66851), r.direction, 0.00001);
+    }
+
+    #[test]
+    fn constructing_ray_when_camera_is_transformed() {
+        let mut c = Camera::new(201, 101, std::f64::consts::PI / 2.);
+        c.transform = rotate_y(std::f64::consts::PI / 4.) * translate(0., -2., 5.);
+        let r = c.ray_for_pixel(100, 50);
+        assert_tuple_near(point(0., 2., -5.), r.origin, 0.00001);
+        assert_tuple_near(
+            vector(2.0_f64.sqrt() / 2., 0., -2.0_f64.sqrt() / 2.),
+            r.direction,
+            0.00001,
+        );
     }
 }
