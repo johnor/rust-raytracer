@@ -4,21 +4,39 @@ use crate::lights::PointLight;
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::transform::scale;
-use crate::tuple::point;
+use crate::tuple::{point, Tuple};
+use crate::shape::Shape;
 
 pub struct World {
     pub light: PointLight,
     pub objects: Vec<Sphere>,
 }
 
+struct Comps<'a> {
+    t: f64,
+    object: &'a Sphere,
+    point: Tuple,
+    eyev: Tuple,
+    normalv: Tuple,
+}
+
 impl World {
-    pub fn intersect(&self, ray: Ray) -> Vec<Intersection> {
+    fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let mut xs = Vec::new();
         for obj in self.objects.iter() {
             xs.append(&mut obj.intersect(ray));
         }
         xs.sort_by(|x, y| x.t.partial_cmp(&y.t).unwrap());
         xs
+    }
+
+    fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
+        let t = intersection.t;
+        let object = intersection.object;
+        let point = ray.position(intersection.t);
+        let eyev =  -ray.direction;
+        let normalv = object.normal(point);
+        Comps{ t, object, point, eyev, normalv }
     }
 }
 
@@ -53,6 +71,7 @@ mod tests {
     use crate::transform::scale;
     use crate::tuple::{point, vector};
     use crate::world::World;
+    use crate::intersections::Intersection;
 
     #[test]
     fn creating_a_default_world() {
@@ -82,5 +101,18 @@ mod tests {
         assert_eq!(4.5, xs[1].t);
         assert_eq!(5.5, xs[2].t);
         assert_eq!(6., xs[3].t);
+    }
+
+    #[test]
+    fn precomputing_the_state_of_an_intersection() {
+        let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(4., &s);
+        let c = World::prepare_computations(i, r);
+        assert_eq!(c.t, i.t);
+        assert_eq!(*c.object, s);
+        assert_eq!(c.point, point(0., 0., -1.));
+        assert_eq!(c.eyev, vector(0., 0., -1.));
+        assert_eq!(c.normalv, vector(0., 0., -1.));
     }
 }
