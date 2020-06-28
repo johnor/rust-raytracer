@@ -18,6 +18,7 @@ struct Comps<'a> {
     point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
+    inside: bool
 }
 
 impl World {
@@ -35,8 +36,13 @@ impl World {
         let object = intersection.object;
         let point = ray.position(intersection.t);
         let eyev =  -ray.direction;
-        let normalv = object.normal(point);
-        Comps{ t, object, point, eyev, normalv }
+        let mut normalv = object.normal(point);
+        let mut inside = false;
+        if normalv.dot(eyev) < 0. {
+            normalv = -normalv;
+            inside = true;
+        }
+        Comps{ t, object, point, eyev, normalv, inside }
     }
 }
 
@@ -113,6 +119,27 @@ mod tests {
         assert_eq!(*c.object, s);
         assert_eq!(c.point, point(0., 0., -1.));
         assert_eq!(c.eyev, vector(0., 0., -1.));
+        assert_eq!(c.normalv, vector(0., 0., -1.));
+    }
+
+    #[test]
+    fn hit_when_interserction_occurs_on_the_outside() {
+        let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(4., &s);
+        let c = World::prepare_computations(i, r);
+        assert_eq!(c.inside, false);
+    }
+
+    #[test]
+    fn hit_when_interserction_occurs_on_the_inside() {
+        let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
+        let s = Sphere::new();
+        let i = Intersection::new(1., &s);
+        let c = World::prepare_computations(i, r);
+        assert_eq!(c.point, point(0. ,0., 1.));
+        assert_eq!(c.eyev, vector(0., 0., -1.));
+        assert_eq!(c.inside, true);
         assert_eq!(c.normalv, vector(0., 0., -1.));
     }
 }
