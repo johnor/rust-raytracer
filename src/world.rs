@@ -1,5 +1,5 @@
 use crate::color::Color;
-use crate::intersections::Intersection;
+use crate::intersections::{hit, Intersection};
 use crate::lights::PointLight;
 use crate::ray::Ray;
 use crate::shape::Shape;
@@ -22,6 +22,13 @@ struct Comps<'a> {
 }
 
 impl World {
+    pub fn color_at(&self, ray: Ray) -> Color {
+        match hit(self.intersect(ray)) {
+            Some(i) => self.shade_hit(World::prepare_computations(i, ray)),
+            None => Color::new(0., 0., 0.),
+        }
+    }
+
     fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let mut xs = Vec::new();
         for obj in self.objects.iter() {
@@ -179,5 +186,31 @@ mod tests {
         let com = World::prepare_computations(i, r);
         let col = w.shade_hit(com);
         assert_color_near(col, Color::new(0.90498, 0.90498, 0.90498), 0.00001);
+    }
+
+    #[test]
+    fn the_color_when_a_ray_misses() {
+        let w = World::default();
+        let r = Ray::new(point(0., 0., -5.), vector(0., 1., 0.));
+        let c = w.color_at(r);
+        assert_eq!(c, Color::new(0., 0., 0.));
+    }
+
+    #[test]
+    fn the_color_when_a_ray_hits() {
+        let w = World::default();
+        let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
+        let c = w.color_at(r);
+        assert_color_near(c, Color::new(0.38066, 0.47583, 0.2855), 0.0001);
+    }
+
+    #[test]
+    fn the_color_when_an_intersection_behind_the_ray() {
+        let mut w = World::default();
+        w.objects[0].material.ambient = 1.;
+        w.objects[1].material.ambient = 1.;
+        let r = Ray::new(point(0., 0., 0.75), vector(0., 0., -1.));
+        let c = w.color_at(r);
+        assert_color_near(c, w.objects[1].material.color, 0.0001);
     }
 }
