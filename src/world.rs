@@ -2,10 +2,10 @@ use crate::color::Color;
 use crate::intersections::Intersection;
 use crate::lights::PointLight;
 use crate::ray::Ray;
+use crate::shape::Shape;
 use crate::sphere::Sphere;
 use crate::transform::scale;
 use crate::tuple::{point, Tuple};
-use crate::shape::Shape;
 
 pub struct World {
     pub light: PointLight,
@@ -18,7 +18,7 @@ struct Comps<'a> {
     point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
-    inside: bool
+    inside: bool,
 }
 
 impl World {
@@ -35,14 +35,28 @@ impl World {
         let t = intersection.t;
         let object = intersection.object;
         let point = ray.position(intersection.t);
-        let eyev =  -ray.direction;
+        let eyev = -ray.direction;
         let mut normalv = object.normal(point);
         let mut inside = false;
         if normalv.dot(eyev) < 0. {
             normalv = -normalv;
             inside = true;
         }
-        Comps{ t, object, point, eyev, normalv, inside }
+        Comps {
+            t,
+            object,
+            point,
+            eyev,
+            normalv,
+            inside,
+        }
+    }
+
+    fn shade_hit(&self, comps: Comps) -> Color {
+        comps
+            .object
+            .material
+            .lighting(self.light, comps.point, comps.eyev, comps.normalv)
     }
 }
 
@@ -71,13 +85,14 @@ impl Default for World {
 #[cfg(test)]
 mod tests {
     use crate::color::Color;
+    use crate::intersections::Intersection;
     use crate::lights::PointLight;
     use crate::ray::Ray;
     use crate::sphere::Sphere;
+    use crate::test_utils::assert_color_near;
     use crate::transform::scale;
     use crate::tuple::{point, vector};
     use crate::world::World;
-    use crate::intersections::Intersection;
 
     #[test]
     fn creating_a_default_world() {
@@ -137,9 +152,32 @@ mod tests {
         let s = Sphere::new();
         let i = Intersection::new(1., &s);
         let c = World::prepare_computations(i, r);
-        assert_eq!(c.point, point(0. ,0., 1.));
+        assert_eq!(c.point, point(0., 0., 1.));
         assert_eq!(c.eyev, vector(0., 0., -1.));
         assert_eq!(c.inside, true);
         assert_eq!(c.normalv, vector(0., 0., -1.));
+    }
+
+    #[test]
+    fn shading_an_intersection() {
+        let w = World::default();
+        let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
+        let s = &w.objects[0];
+        let i = Intersection::new(4., s);
+        let com = World::prepare_computations(i, r);
+        let col = w.shade_hit(com);
+        assert_color_near(col, Color::new(0.38066, 0.47583, 0.2855), 0.0001);
+    }
+
+    #[test]
+    fn shading_an_intersection_from_the_inside() {
+        let mut w = World::default();
+        w.light = PointLight::new(Color::new(1., 1., 1.), point(0., 0.25, 0.));
+        let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
+        let s = &w.objects[1];
+        let i = Intersection::new(0.5, s);
+        let com = World::prepare_computations(i, r);
+        let col = w.shade_hit(com);
+        assert_color_near(col, Color::new(0.90498, 0.90498, 0.90498), 0.00001);
     }
 }
