@@ -1,5 +1,6 @@
 #[cfg(test)]
 use crate::color::Color;
+#[cfg(test)]
 use crate::tuple::Tuple;
 
 #[cfg(test)]

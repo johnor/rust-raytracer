@@ -44,11 +44,12 @@ impl World {
         let point = ray.position(intersection.t);
         let eyev = -ray.direction;
         let mut normalv = object.normal(point);
-        let mut inside = false;
-        if normalv.dot(eyev) < 0. {
+        let inside = if normalv.dot(eyev) < 0. {
             normalv = -normalv;
-            inside = true;
-        }
+            true
+        } else {
+            false
+        };
         Comps {
             t,
             object,
