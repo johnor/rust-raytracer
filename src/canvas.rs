@@ -90,8 +90,8 @@ impl Canvas {
 #[cfg(test)]
 mod tests {
     use crate::canvas::Canvas;
-    use crate::color::test_utils::assert_color_eq;
     use crate::color::Color;
+    use crate::test_utils::assert_color_eq;
 
     #[test]
     fn create_canvas() {

@@ -62,24 +62,9 @@ impl Mul<f64> for Color {
 }
 
 #[cfg(test)]
-pub mod test_utils {
-    use crate::color::Color;
-
-    pub fn assert_color_eq(c1: Color, c2: Color) {
-        assert_color_near(c1, c2, std::f64::EPSILON);
-    }
-
-    pub fn assert_color_near(c1: Color, c2: Color, tol: f64) {
-        assert!((c1.r - c2.r).abs() < tol);
-        assert!((c1.g - c2.g).abs() < tol);
-        assert!((c1.b - c2.b).abs() < tol);
-    }
-}
-
-#[cfg(test)]
 mod tests {
-    use crate::color::test_utils::assert_color_eq;
     use crate::color::Color;
+    use crate::test_utils::assert_color_eq;
 
     #[test]
     fn create_color() {
