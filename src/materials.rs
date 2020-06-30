@@ -54,10 +54,10 @@ impl Default for Material {
 
 #[cfg(test)]
 mod tests {
-    use crate::color::test_utils::assert_color_near;
     use crate::color::Color;
     use crate::lights::PointLight;
     use crate::materials::Material;
+    use crate::test_utils::assert_color_near;
     use crate::tuple::{point, vector};
 
     #[test]
