@@ -176,15 +176,8 @@ impl Mat4x4 {
 #[cfg(test)]
 mod tests {
     use crate::matrix::{Mat2x2, Mat3x3, Mat4x4};
+    use crate::test_utils::assert_mat4x4_near;
     use crate::tuple::Tuple;
-
-    fn assert_mat4x4_near(a: Mat4x4, b: Mat4x4) {
-        for r in 0..Mat4x4::order() {
-            for c in 0..Mat4x4::order() {
-                assert!((b[r][c] - a[r][c]).abs() < 0.00001);
-            }
-        }
-    }
 
     #[test]
     fn create_2x2_matrix() {
