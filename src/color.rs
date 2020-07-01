@@ -11,6 +11,14 @@ impl Color {
     pub fn new(r: f64, g: f64, b: f64) -> Self {
         Color { r, g, b }
     }
+
+    pub fn black() -> Self {
+        Color::new(0., 0., 0.)
+    }
+
+    pub fn white() -> Self {
+        Color::new(1., 1., 1.)
+    }
 }
 
 impl Add for Color {
@@ -72,6 +80,22 @@ mod tests {
         assert_eq!(-0.5, c.r);
         assert_eq!(0.4, c.g);
         assert_eq!(1.7, c.b);
+    }
+
+    #[test]
+    fn create_black_color() {
+        let c = Color::black();
+        assert_eq!(0., c.r);
+        assert_eq!(0., c.g);
+        assert_eq!(0., c.b);
+    }
+
+    #[test]
+    fn create_white_color() {
+        let c = Color::white();
+        assert_eq!(1., c.r);
+        assert_eq!(1., c.g);
+        assert_eq!(1., c.b);
     }
 
     #[test]
