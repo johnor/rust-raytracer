@@ -1,7 +1,9 @@
+use crate::canvas::Canvas;
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
 use crate::transform::translate;
 use crate::tuple::{point, Tuple};
+use crate::world::World;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
@@ -40,6 +42,7 @@ impl Camera {
             half_height,
         }
     }
+
     pub fn ray_for_pixel(&self, px: u32, py: u32) -> Ray {
         let xoffset = (px as f64 + 0.5) * self.pixel_size;
         let yoffset = (py as f64 + 0.5) * self.pixel_size;
@@ -56,6 +59,18 @@ impl Camera {
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)
+    }
+
+    pub fn render(&self, world: World) -> Canvas {
+        let mut image = Canvas::new(self.hsize as usize, self.vsize as usize);
+        for y in 0..image.height() - 1 {
+            for x in 0..image.width() - 1 {
+                let ray = self.ray_for_pixel(x as u32, y as u32);
+                let color = world.color_at(ray);
+                image.set_pixel(x as usize, y as usize, color);
+            }
+        }
+        image
     }
 }
 
@@ -74,10 +89,14 @@ pub fn view_transform(from: Tuple, to: Tuple, up: Tuple) -> Mat4x4 {
 #[cfg(test)]
 mod tests {
     use crate::camera::{view_transform, Camera};
+    use crate::color::Color;
     use crate::matrix::Mat4x4;
-    use crate::test_utils::{assert_mat4x4_near, assert_near, assert_tuple_near};
+    use crate::test_utils::{
+        assert_color_near, assert_mat4x4_near, assert_near, assert_tuple_near,
+    };
     use crate::transform::{rotate_y, scale, translate};
     use crate::tuple::{point, vector};
+    use crate::world::World;
 
     #[test]
     fn view_transformation_matrix_for_default_orientation() {
@@ -171,6 +190,22 @@ mod tests {
         assert_tuple_near(
             vector(2.0_f64.sqrt() / 2., 0., -2.0_f64.sqrt() / 2.),
             r.direction,
+            0.00001,
+        );
+    }
+
+    #[test]
+    fn rendering_world_with_camera() {
+        let w = World::default();
+        let mut c = Camera::new(11, 11, std::f64::consts::PI / 2.);
+        let from = point(0., 0., -5.0);
+        let to = point(0., 0., 0.);
+        let up = vector(0., 1., 0.);
+        c.transform = view_transform(from, to, up);
+        let image = c.render(w);
+        assert_color_near(
+            Color::new(0.38066, 0.47583, 0.2855),
+            image.get_pixel(5, 5),
             0.00001,
         );
     }
