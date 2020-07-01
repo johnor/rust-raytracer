@@ -1,6 +1,7 @@
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
-use crate::tuple::point;
+use crate::transform::translate;
+use crate::tuple::{point, Tuple};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Camera {
@@ -58,13 +59,67 @@ impl Camera {
     }
 }
 
+pub fn view_transform(from: Tuple, to: Tuple, up: Tuple) -> Mat4x4 {
+    let forw = (to - from).normalize();
+    let left = forw.cross(up.normalize());
+    let true_up = left.cross(forw);
+    Mat4x4::new([
+        [left.x, left.y, left.z, 0.],
+        [true_up.x, true_up.y, true_up.z, 0.],
+        [-forw.x, -forw.y, -forw.z, 0.],
+        [0., 0., 0., 1.],
+    ]) * translate(-from.x, -from.y, -from.z)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::camera::Camera;
+    use crate::camera::{view_transform, Camera};
     use crate::matrix::Mat4x4;
-    use crate::test_utils::{assert_near, assert_tuple_near};
-    use crate::transform::{rotate_y, translate};
+    use crate::test_utils::{assert_mat4x4_near, assert_near, assert_tuple_near};
+    use crate::transform::{rotate_y, scale, translate};
     use crate::tuple::{point, vector};
+
+    #[test]
+    fn view_transformation_matrix_for_default_orientation() {
+        let from = point(0., 0., 0.);
+        let to = point(0., 0., -1.);
+        let up = vector(0., 1., 0.);
+        let t = view_transform(from, to, up);
+        assert_mat4x4_near(Mat4x4::identity(), t);
+    }
+
+    #[test]
+    fn view_transformation_matrix_looking_in_positive_z_direction() {
+        let from = point(0., 0., 0.);
+        let to = point(0., 0., 1.);
+        let up = vector(0., 1., 0.);
+        let t = view_transform(from, to, up);
+        assert_mat4x4_near(scale(-1., 1., -1.), t);
+    }
+
+    #[test]
+    fn view_transform_moves_the_world() {
+        let from = point(0., 0., 8.);
+        let to = point(0., 0., 0.);
+        let up = vector(0., 1., 0.);
+        let t = view_transform(from, to, up);
+        assert_mat4x4_near(translate(0., 0., -8.), t);
+    }
+
+    #[test]
+    fn arbitrary_view_transformation() {
+        let from = point(1., 3., 2.);
+        let to = point(4., -2., 8.);
+        let up = vector(1., 1., 0.);
+        let t = view_transform(from, to, up);
+        let et = Mat4x4::new([
+            [-0.50709, 0.50709, 0.67612, -2.36643],
+            [0.76772, 0.60609, 0.12122, -2.82843],
+            [-0.35857, 0.59761, -0.71714, 0.00000],
+            [0.00000, 0.00000, 0.00000, 1.00000],
+        ]);
+        assert_mat4x4_near(et, t);
+    }
 
     #[test]
     fn constructing_a_camera() {
