@@ -64,7 +64,7 @@ impl World {
         comps
             .object
             .material
-            .lighting(self.light, comps.point, comps.eyev, comps.normalv)
+            .lighting(self.light, comps.point, comps.eyev, comps.normalv, false)
     }
 }
 

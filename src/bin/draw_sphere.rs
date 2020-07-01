@@ -37,7 +37,7 @@ fn main() {
                     .unwrap()
                     .object
                     .material
-                    .lighting(light, point, eye, normal);
+                    .lighting(light, point, eye, normal, false);
                 canvas.set_pixel(canvas_col, canvas_row, color);
             }
         }
