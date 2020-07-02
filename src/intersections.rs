@@ -1,14 +1,14 @@
-use crate::sphere::Sphere;
+use crate::shape::ShapeId;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
-pub struct Intersection<'a> {
+pub struct Intersection {
     pub t: f64,
-    pub object: &'a Sphere,
+    pub shape_id: ShapeId,
 }
 
-impl Intersection<'_> {
-    pub fn new(t: f64, object: &Sphere) -> Intersection {
-        Intersection { t, object: &object }
+impl Intersection {
+    pub fn new(t: f64, shape: ShapeId) -> Intersection {
+        Intersection { t, shape_id: shape }
     }
 }
 
@@ -24,22 +24,21 @@ pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
 #[cfg(test)]
 mod tests {
     use crate::intersections::{hit, Intersection};
-    use crate::sphere::Sphere;
 
     #[test]
     fn intersection_encapsulates_t_and_object() {
-        let s = Sphere::new();
-        let i = Intersection::new(3.5, &s);
+        let s = 123;
+        let i = Intersection::new(3.5, s);
 
         assert_eq!(3.5, i.t);
-        assert_eq!(&s, i.object);
+        assert_eq!(s, i.shape_id);
     }
 
     #[test]
     fn hit_when_all_intersections_have_positive_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(1.0, &s);
-        let i2 = Intersection::new(2.0, &s);
+        let s = 123;
+        let i1 = Intersection::new(1.0, s);
+        let i2 = Intersection::new(2.0, s);
         let xs = vec![i1, i2];
 
         assert_eq!(i1, hit(xs).unwrap());
@@ -47,9 +46,9 @@ mod tests {
 
     #[test]
     fn hit_when_some_intersections_have_negative_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(-1.0, &s);
-        let i2 = Intersection::new(2.0, &s);
+        let s = 123;
+        let i1 = Intersection::new(-1.0, s);
+        let i2 = Intersection::new(2.0, s);
         let xs = vec![i1, i2];
 
         assert_eq!(i2, hit(xs).unwrap());
@@ -57,9 +56,9 @@ mod tests {
 
     #[test]
     fn hit_when_all_intersections_have_negative_t() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(-1.0, &s);
-        let i2 = Intersection::new(-2.0, &s);
+        let s = 123;
+        let i1 = Intersection::new(-1.0, s);
+        let i2 = Intersection::new(-2.0, s);
         let xs = vec![i1, i2];
 
         assert_eq!(None, hit(xs));
@@ -67,11 +66,11 @@ mod tests {
 
     #[test]
     fn hit_is_always_lowest_nonnegative_intersection() {
-        let s = Sphere::new();
-        let i1 = Intersection::new(5.0, &s);
-        let i2 = Intersection::new(7.0, &s);
-        let i3 = Intersection::new(-3.0, &s);
-        let i4 = Intersection::new(2.0, &s);
+        let s = 123;
+        let i1 = Intersection::new(5.0, s);
+        let i2 = Intersection::new(7.0, s);
+        let i3 = Intersection::new(-3.0, s);
+        let i4 = Intersection::new(2.0, s);
         let xs = vec![i1, i2, i3, i4];
 
         assert_eq!(i4, hit(xs).unwrap());
