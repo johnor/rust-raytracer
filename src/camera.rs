@@ -20,16 +20,12 @@ impl Camera {
     pub fn new(hsize: u32, vsize: u32, field_of_view: f64) -> Self {
         let half_view = (field_of_view / 2.).tan();
         let aspect = (hsize as f64) / (vsize as f64);
-        let half_width: f64;
-        let half_height: f64;
-
-        if aspect >= 1. {
-            half_width = half_view;
-            half_height = half_view / aspect;
+        let (half_width, half_height) = if aspect >= 1. {
+            (half_view, half_view / aspect)
         } else {
-            half_width = half_view * aspect;
-            half_height = half_view;
-        }
+            (half_view * aspect, half_view)
+        };
+
         let pixel_size = (half_width * 2.) / (hsize as f64);
 
         Camera {
