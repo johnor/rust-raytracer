@@ -7,8 +7,8 @@ pub struct Intersection {
 }
 
 impl Intersection {
-    pub fn new(t: f64, shape: ShapeId) -> Intersection {
-        Intersection { t, shape_id: shape }
+    pub fn new(t: f64, shape_id: ShapeId) -> Intersection {
+        Intersection { t, shape_id }
     }
 }
 
