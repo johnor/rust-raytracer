@@ -3,9 +3,7 @@ use crate::intersections::{hit, Intersection};
 use crate::lights::PointLight;
 use crate::materials::Material;
 use crate::ray::Ray;
-use crate::shape::{
-    Shape, ShapeId, ShapeIntersectionHandler, ShapeObject, SurfaceNormalCalculator,
-};
+use crate::shape::{calculate_normal, intersect, Shape, ShapeId, ShapeObject};
 use crate::transform::scale;
 use crate::tuple::{point, Tuple};
 
@@ -45,7 +43,7 @@ impl World {
     fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let mut xs = Vec::new();
         for id in 0..self.shapes.len() {
-            xs.append(&mut ShapeIntersectionHandler::intersect(
+            xs.append(&mut intersect(
                 id,
                 self.shapes[id].shape,
                 self.shapes[id].transform,
@@ -61,7 +59,7 @@ impl World {
         let shape_id = intersection.shape_id;
         let point = ray.position(intersection.t);
         let eyev = -ray.direction;
-        let mut normalv = SurfaceNormalCalculator::calculate_normal(
+        let mut normalv = calculate_normal(
             self.shapes[shape_id].shape,
             self.shapes[shape_id].transform,
             point,
