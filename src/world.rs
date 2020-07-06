@@ -3,7 +3,7 @@ use crate::intersections::{hit, Intersection};
 use crate::lights::PointLight;
 use crate::materials::Material;
 use crate::ray::Ray;
-use crate::shape::{calculate_normal, intersect, Shape, ShapeId, ShapeObject};
+use crate::shape::{calculate_normal, intersect, ShapeType, ShapeId, ShapeObject};
 use crate::transform::scale;
 use crate::tuple::{point, Tuple};
 
@@ -111,12 +111,12 @@ impl Default for World {
             shapes: Vec::new(),
         };
 
-        let mut s1 = ShapeObject::new(Shape::Sphere);
+        let mut s1 = ShapeObject::new(ShapeType::Sphere);
         s1.material.color = Color::new(0.8, 1.0, 0.6);
         s1.material.diffuse = 0.7;
         s1.material.specular = 0.2;
 
-        let mut s2 = ShapeObject::new(Shape::Sphere);
+        let mut s2 = ShapeObject::new(ShapeType::Sphere);
         s2.transform = s2.transform * scale(0.5, 0.5, 0.5);
 
         w.shapes.push(s1);
@@ -134,7 +134,7 @@ mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
-    use crate::shape::{Shape, ShapeObject};
+    use crate::shape::{ShapeType, ShapeObject};
     use crate::test_utils::assert_color_near;
     use crate::transform::{scale, translate};
     use crate::tuple::{point, vector};
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        w.shapes.push(ShapeObject::new(ShapeType::Sphere));
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
         let i = Intersection::new(4., 0);
         let c = w.prepare_computations(i, r);
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn hit_when_interserction_occurs_on_the_outside() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        w.shapes.push(ShapeObject::new(ShapeType::Sphere));
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
         let i = Intersection::new(4., 0);
         let c = w.prepare_computations(i, r);
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn hit_when_interserction_occurs_on_the_inside() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        w.shapes.push(ShapeObject::new(ShapeType::Sphere));
         let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
         let i = Intersection::new(1., 0);
         let c = w.prepare_computations(i, r);
@@ -212,7 +212,7 @@ mod tests {
     #[test]
     fn hit_should_offset_the_point() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        w.shapes.push(ShapeObject::new(ShapeType::Sphere));
         w.shapes[0].transform = w.shapes[0].transform * translate(0., 0., 1.);
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
         let i = Intersection::new(5., 0);
