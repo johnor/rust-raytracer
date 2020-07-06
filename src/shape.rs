@@ -2,11 +2,12 @@ use crate::intersections::Intersection;
 use crate::materials::Material;
 use crate::matrix::Mat4x4;
 use crate::ray::Ray;
-use crate::tuple::{point, Tuple};
+use crate::tuple::{point, vector, Tuple};
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ShapeType {
     Sphere,
+    Plane,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -30,6 +31,7 @@ impl Shape {
         let local_point = tinv * p;
         let local_normal = match self.shape {
             ShapeType::Sphere => calculate_sphere_normal(local_point),
+            ShapeType::Plane => calculate_plane_normal(),
         };
         let mut world_normal = tinv.transpose() * local_normal;
         world_normal.w = 0.;
@@ -40,12 +42,17 @@ impl Shape {
         let local_ray = self.transform.inverse().unwrap() * ray;
         match self.shape {
             ShapeType::Sphere => intersect_sphere(&self, local_ray),
+            ShapeType::Plane => intersect_plane(&self, local_ray),
         }
     }
 }
 
 fn calculate_sphere_normal(p: Tuple) -> Tuple {
     p - point(0., 0., 0.)
+}
+
+fn calculate_plane_normal() -> Tuple {
+    vector(0., 1., 0.)
 }
 
 fn intersect_sphere(shape: &Shape, ray: Ray) -> Vec<Intersection> {
@@ -66,12 +73,20 @@ fn intersect_sphere(shape: &Shape, ray: Ray) -> Vec<Intersection> {
     vec![Intersection::new(t1, shape), Intersection::new(t2, shape)]
 }
 
+fn intersect_plane(shape: &Shape, ray: Ray) -> Vec<Intersection> {
+    if ray.direction.y.abs() > std::f64::EPSILON {
+        vec![Intersection::new(-ray.origin.y / ray.direction.y, shape)]
+    } else {
+        vec![]
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
-    use crate::shape::{Shape, ShapeType};
+    use crate::shape::{calculate_plane_normal, intersect_plane, Shape, ShapeType};
     use crate::transform;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
@@ -152,6 +167,12 @@ mod tests {
     }
 
     #[test]
+    fn normal_of_a_plane_is_constant_everywhere() {
+        let n = calculate_plane_normal();
+        assert_eq!(vector(0., 1., 0.), n);
+    }
+
+    #[test]
     fn ray_and_sphere_intersects_at_two_points() {
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
         let s = Shape::new(ShapeType::Sphere);
@@ -226,5 +247,41 @@ mod tests {
         s.transform = transform::translate(5.0, 0.0, 0.0);
         let xs = s.intersect(r);
         assert_eq!(0, xs.len());
+    }
+
+    #[test]
+    fn intersect_with_ray_parallel_to_the_plane() {
+        let p = Shape::new(ShapeType::Plane);
+        let r = Ray::new(point(0., 10., 0.), vector(0., 0., 1.));
+        let xs = intersect_plane(&p, r);
+        assert_eq!(0, xs.len());
+    }
+
+    #[test]
+    fn intersect_with_a_coplanar_ray() {
+        let p = Shape::new(ShapeType::Plane);
+        let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
+        let xs = intersect_plane(&p, r);
+        assert_eq!(0, xs.len());
+    }
+
+    #[test]
+    fn ray_intersect_plane_from_above() {
+        let p = Shape::new(ShapeType::Plane);
+        let r = Ray::new(point(0., 1., 0.), vector(0., -1., 0.));
+        let xs = intersect_plane(&p, r);
+        assert_eq!(1, xs.len());
+        assert_eq!(1., xs[0].t);
+        assert_eq!(&p, xs[0].shape);
+    }
+
+    #[test]
+    fn ray_intersect_plane_from_below() {
+        let p = Shape::new(ShapeType::Plane);
+        let r = Ray::new(point(0., -1., 0.), vector(0., 1., 0.));
+        let xs = intersect_plane(&p, r);
+        assert_eq!(1, xs.len());
+        assert_eq!(1., xs[0].t);
+        assert_eq!(&p, xs[0].shape);
     }
 }
