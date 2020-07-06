@@ -12,15 +12,15 @@ pub enum ShapeType {
 }
 
 #[derive(Copy, Clone)]
-pub struct ShapeObject {
+pub struct Shape {
     pub shape: ShapeType,
     pub transform: Mat4x4,
     pub material: Material,
 }
 
-impl ShapeObject {
+impl Shape {
     pub fn new(shape: ShapeType) -> Self {
-        ShapeObject {
+        Shape {
             shape,
             transform: Mat4x4::identity(),
             material: Material::new(),
@@ -80,20 +80,20 @@ mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
-    use crate::shape::{calculate_normal, intersect, ShapeType, ShapeObject};
+    use crate::shape::{calculate_normal, intersect, ShapeType, Shape};
     use crate::transform;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
 
     #[test]
     fn shape_default_transformation() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         assert_eq!(Mat4x4::identity(), s.transform);
     }
 
     #[test]
     fn shape_change_transformation() {
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         let t = transform::translate(2.0, 3.0, 4.0);
         s.transform = s.transform * t;
         assert_eq!(t, s.transform);
@@ -101,13 +101,13 @@ mod tests {
 
     #[test]
     fn sphere_has_default_material() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         assert_eq!(Material::new(), s.material);
     }
 
     #[test]
     fn sphere_may_be_assigned_a_material() {
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         let mut m = Material::new();
         m.ambient = 1.;
         s.material.ambient = m.ambient;
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn normal_on_a_sphere_at_a_point_on_the_x_axis() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         assert_tuple_eq(
             vector(1., 0., 0.),
             calculate_normal(s.shape, s.transform, point(1., 0., 0.)),
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn normal_on_a_sphere_at_a_point_on_the_y_axis() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         assert_tuple_eq(
             vector(0., 1., 0.),
             calculate_normal(s.shape, s.transform, point(0., 1., 0.)),
@@ -134,7 +134,7 @@ mod tests {
 
     #[test]
     fn normal_on_a_sphere_at_a_point_on_the_z_axis() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         assert_tuple_eq(
             vector(0., 0., 1.),
             calculate_normal(s.shape, s.transform, point(0., 0., 1.)),
@@ -143,7 +143,7 @@ mod tests {
 
     #[test]
     fn normal_on_a_sphere_at_a_nonaxial_point() {
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let v = 3_f64.sqrt() / 3.;
         assert_tuple_eq(
             vector(v, v, v),
@@ -153,7 +153,7 @@ mod tests {
 
     #[test]
     fn computing_the_normal_on_a_translated_sphere() {
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         s.transform = transform::translate(0., 1., 0.);
         assert_tuple_eq(
             vector(0., 0.70711, -0.70711),
@@ -163,7 +163,7 @@ mod tests {
 
     #[test]
     fn computing_the_normal_on_a_transformed_sphere() {
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         s.transform =
             transform::scale(1., 0.5, 1.) * transform::rotate_z(std::f64::consts::PI / 5.);
         assert_tuple_eq(
@@ -179,7 +179,7 @@ mod tests {
     #[test]
     fn ray_and_sphere_intersects_at_two_points() {
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(2, xs.len());
         assert_eq!(4.0, xs[0].t);
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn ray_intersects_sphere_at_tangent() {
         let r = Ray::new(point(0.0, 1.0, -5.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(2, xs.len());
         assert_eq!(5.0, xs[0].t);
@@ -199,7 +199,7 @@ mod tests {
     #[test]
     fn ray_misses_sphere() {
         let r = Ray::new(point(0.0, 2.0, -5.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(0, xs.len());
     }
@@ -207,7 +207,7 @@ mod tests {
     #[test]
     fn ray_originates_inside_sphere() {
         let r = Ray::new(point(0.0, 0.0, 0.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(2, xs.len());
         assert_eq!(-1.0, xs[0].t);
@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn sphere_behind_ray() {
         let r = Ray::new(point(0.0, 0.0, 5.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(2, xs.len());
         assert_eq!(-6.0, xs[0].t);
@@ -227,7 +227,7 @@ mod tests {
     #[test]
     fn intersect_sets_object_on_intersection() {
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let s = ShapeObject::new(ShapeType::Sphere);
+        let s = Shape::new(ShapeType::Sphere);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(0, xs[0].shape_id);
         assert_eq!(0, xs[1].shape_id);
@@ -236,7 +236,7 @@ mod tests {
     #[test]
     fn intersect_scaled_sphere_with_ray() {
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         s.transform = transform::scale(2.0, 2.0, 2.0);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(2, xs.len());
@@ -247,7 +247,7 @@ mod tests {
     #[test]
     fn intersect_translated_sphere_with_ray() {
         let r = Ray::new(point(0.0, 0.0, -5.0), vector(0.0, 0.0, 1.0));
-        let mut s = ShapeObject::new(ShapeType::Sphere);
+        let mut s = Shape::new(ShapeType::Sphere);
         s.transform = transform::translate(5.0, 0.0, 0.0);
         let xs = intersect(0, s.shape, s.transform, r);
         assert_eq!(0, xs.len());

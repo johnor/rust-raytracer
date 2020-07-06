@@ -1,5 +1,5 @@
 extern crate rust_raytracer;
-use crate::rust_raytracer::shape::ShapeObject;
+use crate::rust_raytracer::shape::Shape;
 use rust_raytracer::materials::Material;
 use rust_raytracer::shape::{calculate_normal, intersect, ShapeType};
 use rust_raytracer::*;
@@ -8,7 +8,7 @@ fn main() {
     let canvas_pixels = 300;
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
 
-    let mut shape = ShapeObject::new(ShapeType::Sphere);
+    let mut shape = Shape::new(ShapeType::Sphere);
     shape.transform =
         transform::rotate_z(std::f64::consts::PI / 4.0) * transform::scale(1.0, 0.5, 1.0);
     shape.material.color = color::Color::new(1., 0.2, 1.);
