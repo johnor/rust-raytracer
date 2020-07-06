@@ -1,11 +1,14 @@
 extern crate rust_raytracer;
-use crate::rust_raytracer::shape::Shape;
+use crate::rust_raytracer::shape::ShapeObject;
+use rust_raytracer::materials::Material;
+use rust_raytracer::shape::{calculate_normal, intersect, Shape};
 use rust_raytracer::*;
 
 fn main() {
     let canvas_pixels = 300;
     let mut canvas = canvas::Canvas::new(canvas_pixels, canvas_pixels);
-    let mut shape = sphere::Sphere::new();
+
+    let mut shape = ShapeObject::new(Shape::Sphere);
     shape.transform =
         transform::rotate_z(std::f64::consts::PI / 4.0) * transform::scale(1.0, 0.5, 1.0);
     shape.material.color = color::Color::new(1., 0.2, 1.);
@@ -27,17 +30,14 @@ fn main() {
 
             let pos_at_wall = tuple::point(world_x, world_y, wall_z);
             let ray = ray::Ray::new(ray_origin, (pos_at_wall - ray_origin).normalize());
-            let xs = shape.intersect(ray);
+
+            let xs = intersect(0, shape.shape, shape.transform, ray);
             let hit = intersections::hit(xs);
             if let Some(intersection) = hit {
                 let point = ray.position(intersection.t);
-                let normal = intersection.object.normal(point);
+                let normal = calculate_normal(shape.shape, shape.transform, point);
                 let eye = -ray.direction;
-                let color = hit
-                    .unwrap()
-                    .object
-                    .material
-                    .lighting(light, point, eye, normal, false);
+                let color = Material::lighting(shape.material, light, point, eye, normal, false);
                 canvas.set_pixel(canvas_col, canvas_row, color);
             }
         }
