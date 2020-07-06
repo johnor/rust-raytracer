@@ -1,7 +1,6 @@
 extern crate rust_raytracer;
-use crate::rust_raytracer::shape::Shape;
 use rust_raytracer::materials::Material;
-use rust_raytracer::shape::{calculate_normal, intersect, ShapeType};
+use rust_raytracer::shape::{Shape, ShapeType};
 use rust_raytracer::*;
 
 fn main() {
@@ -31,11 +30,11 @@ fn main() {
             let pos_at_wall = tuple::point(world_x, world_y, wall_z);
             let ray = ray::Ray::new(ray_origin, (pos_at_wall - ray_origin).normalize());
 
-            let xs = intersect(0, shape.shape, shape.transform, ray);
+            let xs = shape.intersect(ray);
             let hit = intersections::hit(xs);
             if let Some(intersection) = hit {
                 let point = ray.position(intersection.t);
-                let normal = calculate_normal(shape.shape, shape.transform, point);
+                let normal = shape.normal(point);
                 let eye = -ray.direction;
                 let color = Material::lighting(shape.material, light, point, eye, normal, false);
                 canvas.set_pixel(canvas_col, canvas_row, color);

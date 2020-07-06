@@ -1,5 +1,5 @@
 extern crate rust_raytracer;
-use rust_raytracer::shape::{ShapeType, Shape};
+use rust_raytracer::shape::{Shape, ShapeType};
 use rust_raytracer::*;
 
 fn main() {
