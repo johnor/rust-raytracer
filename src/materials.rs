@@ -1,5 +1,7 @@
 use crate::color::Color;
 use crate::lights::PointLight;
+use crate::patterns::StripedPattern;
+use crate::shape::Shape;
 use crate::tuple::Tuple;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -9,6 +11,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
+    pub pattern: Option<StripedPattern>,
 }
 
 impl Material {
@@ -19,18 +22,24 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            pattern: None,
         }
     }
 
     pub fn lighting(
         material: Material,
+        object: &Shape,
         light: PointLight,
         point: Tuple,
         eyev: Tuple,
         normalv: Tuple,
         in_shadow: bool,
     ) -> Color {
-        let effective_color = material.color * light.intensity;
+        let color = match material.pattern {
+            Some(pattern) => pattern.color_at_object(object, point),
+            None => material.color,
+        };
+        let effective_color = color * light.intensity;
         let lightv = (light.position - point).normalize();
         let ambient = effective_color * material.ambient;
 
@@ -66,6 +75,8 @@ mod tests {
     use crate::color::Color;
     use crate::lights::PointLight;
     use crate::materials::Material;
+    use crate::patterns::StripedPattern;
+    use crate::shape::{Shape, ShapeType};
     use crate::test_utils::assert_color_near;
     use crate::tuple::{point, vector};
 
@@ -86,7 +97,8 @@ mod tests {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 0., -10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, false);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, false);
         assert_eq!(Color::new(1.9, 1.9, 1.9), result);
     }
 
@@ -97,7 +109,8 @@ mod tests {
         let eyev = vector(0., 2_f64.sqrt() / 2., 2_f64.sqrt() / 2.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 0., -10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, false);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, false);
         assert_eq!(Color::new(1.0, 1.0, 1.0), result);
     }
 
@@ -108,7 +121,8 @@ mod tests {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 10., -10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, false);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, false);
         assert_color_near(Color::new(0.7364, 0.7364, 0.7364), result, 0.00001);
     }
 
@@ -119,7 +133,8 @@ mod tests {
         let eyev = vector(0., -2_f64.sqrt() / 2., -2_f64.sqrt() / 2.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 10., -10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, false);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, false);
         assert_color_near(Color::new(1.6364, 1.6364, 1.6364), result, 0.00001);
     }
 
@@ -130,7 +145,8 @@ mod tests {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 0., 10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, false);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, false);
         assert_eq!(Color::new(0.1, 0.1, 0.1), result);
     }
 
@@ -141,7 +157,26 @@ mod tests {
         let eyev = vector(0., 0., -1.);
         let normalv = vector(0., 0., -1.);
         let light = PointLight::new(Color::new(1., 1., 1.), point(0., 0., -10.));
-        let result = Material::lighting(m, light, position, eyev, normalv, true);
+        let object = Shape::new(ShapeType::Sphere);
+        let result = Material::lighting(m, &object, light, position, eyev, normalv, true);
         assert_eq!(Color::new(0.1, 0.1, 0.1), result);
+    }
+
+    #[test]
+    fn lighting_with_pattern_applied() {
+        let mut m = Material::new();
+        m.pattern = Some(StripedPattern::new(Color::white(), Color::black()));
+        m.ambient = 1.;
+        m.diffuse = 0.;
+        m.specular = 0.;
+
+        let eyev = vector(0., 0., -1.);
+        let normalv = vector(0., 0., -1.);
+        let light = PointLight::new(Color::new(1., 1., 1.), point(0., 0., -10.));
+        let object = Shape::new(ShapeType::Sphere);
+        let c1 = Material::lighting(m, &object, light, point(0.9, 0., 0.), eyev, normalv, false);
+        let c2 = Material::lighting(m, &object, light, point(1.1, 0., 0.), eyev, normalv, false);
+        assert_eq!(Color::white(), c1);
+        assert_eq!(Color::black(), c2);
     }
 }
