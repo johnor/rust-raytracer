@@ -36,7 +36,8 @@ fn main() {
                 let point = ray.position(intersection.t);
                 let normal = shape.normal(point);
                 let eye = -ray.direction;
-                let color = Material::lighting(shape.material, light, point, eye, normal, false);
+                let color =
+                    Material::lighting(shape.material, &shape, light, point, eye, normal, false);
                 canvas.set_pixel(canvas_col, canvas_row, color);
             }
         }

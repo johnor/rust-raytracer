@@ -5,6 +5,7 @@ pub mod intersections;
 pub mod lights;
 pub mod materials;
 pub mod matrix;
+pub mod patterns;
 pub mod ray;
 pub mod shape;
 pub mod transform;
