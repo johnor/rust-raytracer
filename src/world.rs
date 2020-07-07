@@ -3,18 +3,18 @@ use crate::intersections::{hit, Intersection};
 use crate::lights::PointLight;
 use crate::materials::Material;
 use crate::ray::Ray;
-use crate::shape::{calculate_normal, intersect, Shape, ShapeId, ShapeObject};
+use crate::shape::{Shape, ShapeType};
 use crate::transform::scale;
 use crate::tuple::{point, Tuple};
 
 pub struct World {
     pub light: PointLight,
-    pub shapes: Vec<ShapeObject>,
+    pub shapes: Vec<Shape>,
 }
 
-struct Comps {
+struct Comps<'a> {
     t: f64,
-    shape_id: ShapeId,
+    shape: &'a Shape,
     point: Tuple,
     over_point: Tuple,
     eyev: Tuple,
@@ -22,7 +22,7 @@ struct Comps {
     inside: bool,
 }
 
-impl Comps {
+impl<'a> Comps<'a> {
     const OVER_POINT_EPSILON: f64 = 0.000_000_1;
 }
 
@@ -35,35 +35,26 @@ impl World {
     }
     pub fn color_at(&self, ray: Ray) -> Color {
         match hit(self.intersect(ray)) {
-            Some(i) => self.shade_hit(self.prepare_computations(i, ray)),
+            Some(i) => self.shade_hit(Self::prepare_computations(i, ray)),
             None => Color::new(0., 0., 0.),
         }
     }
 
     fn intersect(&self, ray: Ray) -> Vec<Intersection> {
         let mut xs = Vec::new();
-        for id in 0..self.shapes.len() {
-            xs.append(&mut intersect(
-                id,
-                self.shapes[id].shape,
-                self.shapes[id].transform,
-                ray,
-            ));
+        for shape in self.shapes.iter() {
+            xs.append(&mut shape.intersect(ray));
         }
         xs.sort_by(|x, y| x.t.partial_cmp(&y.t).unwrap());
         xs
     }
 
-    fn prepare_computations(&self, intersection: Intersection, ray: Ray) -> Comps {
+    fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
         let t = intersection.t;
-        let shape_id = intersection.shape_id;
+        let shape = intersection.shape;
         let point = ray.position(intersection.t);
         let eyev = -ray.direction;
-        let mut normalv = calculate_normal(
-            self.shapes[shape_id].shape,
-            self.shapes[shape_id].transform,
-            point,
-        );
+        let mut normalv = shape.normal(point);
         let over_point = point + normalv * Comps::OVER_POINT_EPSILON;
         let inside = if normalv.dot(eyev) < 0. {
             normalv = -normalv;
@@ -73,7 +64,7 @@ impl World {
         };
         Comps {
             t,
-            shape_id,
+            shape,
             point,
             over_point,
             eyev,
@@ -84,7 +75,7 @@ impl World {
 
     fn shade_hit(&self, comps: Comps) -> Color {
         Material::lighting(
-            self.shapes[comps.shape_id].material,
+            comps.shape.material,
             self.light,
             comps.over_point,
             comps.eyev,
@@ -111,12 +102,12 @@ impl Default for World {
             shapes: Vec::new(),
         };
 
-        let mut s1 = ShapeObject::new(Shape::Sphere);
+        let mut s1 = Shape::new(ShapeType::Sphere);
         s1.material.color = Color::new(0.8, 1.0, 0.6);
         s1.material.diffuse = 0.7;
         s1.material.specular = 0.2;
 
-        let mut s2 = ShapeObject::new(Shape::Sphere);
+        let mut s2 = Shape::new(ShapeType::Sphere);
         s2.transform = s2.transform * scale(0.5, 0.5, 0.5);
 
         w.shapes.push(s1);
@@ -134,7 +125,7 @@ mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
-    use crate::shape::{Shape, ShapeObject};
+    use crate::shape::{Shape, ShapeType};
     use crate::test_utils::assert_color_near;
     use crate::transform::{scale, translate};
     use crate::tuple::{point, vector};
@@ -175,12 +166,13 @@ mod tests {
     #[test]
     fn precomputing_the_state_of_an_intersection() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        let s = Shape::new(ShapeType::Sphere);
+        w.shapes.push(s);
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
-        let i = Intersection::new(4., 0);
-        let c = w.prepare_computations(i, r);
+        let i = Intersection::new(4., &s);
+        let c = World::prepare_computations(i, r);
         assert_eq!(c.t, i.t);
-        assert_eq!(c.shape_id, 0);
+        assert_eq!(c.shape, &s);
         assert_eq!(c.point, point(0., 0., -1.));
         assert_eq!(c.eyev, vector(0., 0., -1.));
         assert_eq!(c.normalv, vector(0., 0., -1.));
@@ -189,20 +181,22 @@ mod tests {
     #[test]
     fn hit_when_interserction_occurs_on_the_outside() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        let s = Shape::new(ShapeType::Sphere);
+        w.shapes.push(s);
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
-        let i = Intersection::new(4., 0);
-        let c = w.prepare_computations(i, r);
+        let i = Intersection::new(4., &s);
+        let c = World::prepare_computations(i, r);
         assert_eq!(c.inside, false);
     }
 
     #[test]
     fn hit_when_interserction_occurs_on_the_inside() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
+        let s = Shape::new(ShapeType::Sphere);
+        w.shapes.push(s);
         let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
-        let i = Intersection::new(1., 0);
-        let c = w.prepare_computations(i, r);
+        let i = Intersection::new(1., &s);
+        let c = World::prepare_computations(i, r);
         assert_eq!(c.point, point(0., 0., 1.));
         assert_eq!(c.eyev, vector(0., 0., -1.));
         assert_eq!(c.inside, true);
@@ -212,11 +206,12 @@ mod tests {
     #[test]
     fn hit_should_offset_the_point() {
         let mut w = World::new();
-        w.shapes.push(ShapeObject::new(Shape::Sphere));
-        w.shapes[0].transform = w.shapes[0].transform * translate(0., 0., 1.);
+        let mut s = Shape::new(ShapeType::Sphere);
+        s.transform = translate(0., 0., 1.);
+        w.shapes.push(s);
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
-        let i = Intersection::new(5., 0);
-        let comps = w.prepare_computations(i, r);
+        let i = Intersection::new(5., &s);
+        let comps = World::prepare_computations(i, r);
         assert!(comps.over_point.z < -Comps::OVER_POINT_EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
     }
@@ -225,8 +220,8 @@ mod tests {
     fn shading_an_intersection() {
         let w = World::default();
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
-        let i = Intersection::new(4., 0);
-        let com = w.prepare_computations(i, r);
+        let i = Intersection::new(4., &w.shapes[0]);
+        let com = World::prepare_computations(i, r);
         let col = w.shade_hit(com);
         assert_color_near(col, Color::new(0.38066, 0.47583, 0.2855), 0.0001);
     }
@@ -236,8 +231,8 @@ mod tests {
         let mut w = World::default();
         w.light = PointLight::new(Color::new(1., 1., 1.), point(0., 0.25, 0.));
         let r = Ray::new(point(0., 0., 0.), vector(0., 0., 1.));
-        let i = Intersection::new(0.5, 1);
-        let com = w.prepare_computations(i, r);
+        let i = Intersection::new(0.5, &w.shapes[1]);
+        let com = World::prepare_computations(i, r);
         let col = w.shade_hit(com);
         assert_eq!(col, Color::new(0.1, 0.1, 0.1));
     }
@@ -248,8 +243,8 @@ mod tests {
         w.light = PointLight::new(Color::white(), point(0., 0., -10.));
         w.shapes[1].transform = w.shapes[1].transform * translate(0., 0., 10.);
         let r = Ray::new(point(0., 0., 5.), vector(0., 0., 1.));
-        let i = Intersection::new(4., 1);
-        let comps = w.prepare_computations(i, r);
+        let i = Intersection::new(4., &w.shapes[1]);
+        let comps = World::prepare_computations(i, r);
         assert_eq!(Color::new(0.1, 0.1, 0.1), w.shade_hit(comps));
     }
 
