@@ -76,6 +76,7 @@ impl World {
     fn shade_hit(&self, comps: Comps) -> Color {
         Material::lighting(
             comps.shape.material,
+            comps.shape,
             self.light,
             comps.over_point,
             comps.eyev,

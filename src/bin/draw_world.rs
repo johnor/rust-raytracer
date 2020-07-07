@@ -23,10 +23,15 @@ fn main() {
     right_wall.material = floor.material;
 
     let mut middle = Shape::new(ShapeType::Sphere);
+    let mut middle_pattern =
+        patterns::StripedPattern::new(color::Color::white(), color::Color::black());
+    middle_pattern.transform = transform::scale(0.2, 1., 1.);
+
     middle.transform = transform::translate(-0.5, 1., 0.5);
     middle.material.color = color::Color::new(0.1, 1.0, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
+    middle.material.pattern = Some(middle_pattern);
 
     let mut right = Shape::new(ShapeType::Sphere);
     right.transform = transform::translate(1.5, 0.5, -0.5) * transform::scale(0.5, 0.5, 0.5);
