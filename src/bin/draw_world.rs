@@ -31,13 +31,20 @@ fn main() {
     middle.material.color = color::Color::new(0.1, 1.0, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
-    middle.material.pattern = Some(middle_pattern);
+    middle.material.pattern = Some(patterns::Pattern::Stripe(middle_pattern));
+
+    let mut right_pattern = patterns::GradientPattern::new(
+        color::Color::new(0., 0., 1.),
+        color::Color::new(1., 0., 0.),
+    );
+    right_pattern.transform = transform::rotate_x(std::f64::consts::PI / 2.);
 
     let mut right = Shape::new(ShapeType::Sphere);
     right.transform = transform::translate(1.5, 0.5, -0.5) * transform::scale(0.5, 0.5, 0.5);
     right.material.color = color::Color::new(0.5, 1.0, 0.1);
     right.material.diffuse = 0.7;
     right.material.specular = 0.3;
+    right.material.pattern = Some(patterns::Pattern::Gradient(right_pattern));
 
     let mut left = Shape::new(ShapeType::Sphere);
     left.transform = transform::translate(-1.5, 0.33, -0.75) * transform::scale(0.33, 0.33, 0.33);

@@ -1,6 +1,6 @@
 use crate::color::Color;
 use crate::lights::PointLight;
-use crate::patterns::StripedPattern;
+use crate::patterns::{Pattern, PatternTrait};
 use crate::shape::Shape;
 use crate::tuple::Tuple;
 
@@ -11,7 +11,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
-    pub pattern: Option<StripedPattern>,
+    pub pattern: Option<Pattern>,
 }
 
 impl Material {
@@ -75,7 +75,7 @@ mod tests {
     use crate::color::Color;
     use crate::lights::PointLight;
     use crate::materials::Material;
-    use crate::patterns::StripedPattern;
+    use crate::patterns::{Pattern, StripedPattern};
     use crate::shape::{Shape, ShapeType};
     use crate::test_utils::assert_color_near;
     use crate::tuple::{point, vector};
@@ -165,7 +165,10 @@ mod tests {
     #[test]
     fn lighting_with_pattern_applied() {
         let mut m = Material::new();
-        m.pattern = Some(StripedPattern::new(Color::white(), Color::black()));
+        m.pattern = Some(Pattern::Stripe(StripedPattern::new(
+            Color::white(),
+            Color::black(),
+        )));
         m.ambient = 1.;
         m.diffuse = 0.;
         m.specular = 0.;

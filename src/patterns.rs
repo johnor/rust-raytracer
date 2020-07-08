@@ -3,6 +3,10 @@ use crate::matrix::Mat4x4;
 use crate::shape::Shape;
 use crate::tuple::Tuple;
 
+pub trait PatternTrait {
+    fn color_at_object(&self, shape: &Shape, world_point: Tuple) -> Color;
+}
+
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub struct StripedPattern {
     pub a: Color,
@@ -26,17 +30,66 @@ impl StripedPattern {
             self.b
         }
     }
-    pub fn color_at_object(&self, object: &Shape, world_point: Tuple) -> Color {
-        let object_point = object.transform.inverse().unwrap() * world_point;
+}
+
+impl PatternTrait for StripedPattern {
+    fn color_at_object(&self, shape: &Shape, world_point: Tuple) -> Color {
+        let object_point = shape.transform.inverse().unwrap() * world_point;
         let pattern_point = self.transform.inverse().unwrap() * object_point;
         self.color_at(pattern_point)
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub struct GradientPattern {
+    pub a: Color,
+    pub b: Color,
+    pub transform: Mat4x4,
+}
+
+impl GradientPattern {
+    pub fn new(a: Color, b: Color) -> Self {
+        GradientPattern {
+            a,
+            b,
+            transform: Mat4x4::identity(),
+        }
+    }
+
+    pub fn color_at(&self, point: Tuple) -> Color {
+        let distance = self.b - self.a;
+        let fraction = point.x - point.x.floor();
+        self.a + distance * fraction
+    }
+}
+
+impl PatternTrait for GradientPattern {
+    fn color_at_object(&self, shape: &Shape, world_point: Tuple) -> Color {
+        let object_point = shape.transform.inverse().unwrap() * world_point;
+        let pattern_point = self.transform.inverse().unwrap() * object_point;
+        self.color_at(pattern_point)
+    }
+}
+
+#[derive(PartialEq, Debug, Copy, Clone)]
+pub enum Pattern {
+    Stripe(StripedPattern),
+    Gradient(GradientPattern),
+}
+
+impl PatternTrait for Pattern {
+    fn color_at_object(&self, shape: &Shape, world_point: Tuple) -> Color {
+        match self {
+            Pattern::Stripe(s) => s.color_at_object(shape, world_point),
+            Pattern::Gradient(g) => g.color_at_object(shape, world_point),
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::color::Color;
-    use crate::patterns::StripedPattern;
+    use crate::patterns::{GradientPattern, PatternTrait, StripedPattern};
     use crate::shape::{Shape, ShapeType};
     use crate::transform;
     use crate::tuple::point;
@@ -101,5 +154,23 @@ mod tests {
         pattern.transform = transform::translate(0.5, 0., 0.);
         let c = pattern.color_at_object(&object, point(2.5, 0., 0.));
         assert_eq!(Color::white(), c);
+    }
+
+    #[test]
+    fn gradient_pattern_linearly_interpolates_between_colors() {
+        let pattern = GradientPattern::new(Color::white(), Color::black());
+        assert_eq!(Color::white(), pattern.color_at(point(0., 0., 0.)));
+        assert_eq!(
+            Color::new(0.75, 0.75, 0.75),
+            pattern.color_at(point(0.25, 0., 0.))
+        );
+        assert_eq!(
+            Color::new(0.5, 0.5, 0.5),
+            pattern.color_at(point(0.5, 0., 0.))
+        );
+        assert_eq!(
+            Color::new(0.25, 0.25, 0.25),
+            pattern.color_at(point(0.75, 0., 0.))
+        );
     }
 }
