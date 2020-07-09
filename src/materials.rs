@@ -11,6 +11,7 @@ pub struct Material {
     pub diffuse: f64,
     pub specular: f64,
     pub shininess: f64,
+    pub reflective: f64,
     pub pattern: Option<Pattern>,
 }
 
@@ -22,6 +23,7 @@ impl Material {
             diffuse: 0.9,
             specular: 0.9,
             shininess: 200.,
+            reflective: 0.,
             pattern: None,
         }
     }
@@ -88,6 +90,7 @@ mod tests {
         assert_eq!(0.9, m.diffuse);
         assert_eq!(0.9, m.specular);
         assert_eq!(200., m.shininess);
+        assert_eq!(0., m.reflective);
     }
 
     #[test]
