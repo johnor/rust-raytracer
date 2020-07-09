@@ -19,6 +19,7 @@ struct Comps<'a> {
     over_point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
+    reflectv: Tuple,
     inside: bool,
 }
 
@@ -62,6 +63,7 @@ impl World {
         } else {
             false
         };
+        let reflectv = ray.direction.reflect(normalv);
         Comps {
             t,
             shape,
@@ -69,6 +71,7 @@ impl World {
             over_point,
             eyev,
             normalv,
+            reflectv,
             inside,
         }
     }
@@ -297,5 +300,17 @@ mod tests {
     fn no_shadow_when_an_object_is_behind_the_point() {
         let w = World::default();
         assert_eq!(false, w.is_shadowed(point(-2., 2., -2.)));
+    }
+
+    #[test]
+    fn pre_compute_reflection_vector() {
+        let p = Shape::new(ShapeType::Plane);
+        let i = Intersection::new(2_f64.sqrt(), &p);
+        let r = Ray::new(
+            point(0., 1., -1.),
+            vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
+        );
+        let c = World::prepare_computations(i, r);
+        assert_eq!(vector(0., 2_f64.sqrt() / 2., 2_f64.sqrt() / 2.), c.reflectv);
     }
 }
