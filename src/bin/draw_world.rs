@@ -24,14 +24,15 @@ fn main() {
 
     let mut middle = Shape::new(ShapeType::Sphere);
     let mut middle_pattern =
-        patterns::StripedPattern::new(color::Color::white(), color::Color::black());
-    middle_pattern.transform = transform::scale(0.2, 1., 1.);
+        patterns::CheckerPattern::new(color::Color::white(), color::Color::black());
+    middle_pattern.transform =
+        transform::rotate_y(std::f64::consts::PI / 3.) * transform::scale(0.2, 0.2, 0.2);
 
     middle.transform = transform::translate(-0.5, 1., 0.5);
     middle.material.color = color::Color::new(0.1, 1.0, 0.5);
     middle.material.diffuse = 0.7;
     middle.material.specular = 0.3;
-    middle.material.pattern = Some(patterns::Pattern::Stripe(middle_pattern));
+    middle.material.pattern = Some(patterns::Pattern::Checker(middle_pattern));
 
     let mut right_pattern = patterns::GradientPattern::new(
         color::Color::new(0., 0., 1.),
@@ -46,11 +47,16 @@ fn main() {
     right.material.specular = 0.3;
     right.material.pattern = Some(patterns::Pattern::Gradient(right_pattern));
 
+    let mut ring_pattern =
+        patterns::RingPattern::new(color::Color::new(0., 1., 0.), color::Color::new(1., 0., 0.));
+    ring_pattern.transform = transform::scale(0.2, 1., 1.);
+
     let mut left = Shape::new(ShapeType::Sphere);
     left.transform = transform::translate(-1.5, 0.33, -0.75) * transform::scale(0.33, 0.33, 0.33);
     left.material.color = color::Color::new(1., 0.8, 0.1);
     left.material.diffuse = 0.7;
     left.material.specular = 0.3;
+    left.material.pattern = Some(patterns::Pattern::Ring(ring_pattern));
 
     let light_position = tuple::point(-10., 10., -10.);
     let light_color = color::Color::new(1., 1., 1.);
