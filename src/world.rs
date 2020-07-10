@@ -405,6 +405,8 @@ mod tests {
         w.shapes.push(upper_plane);
 
         let r = Ray::new(point(0., 0., 0.), vector(0., 1., 0.));
+
+        // Test that call to color_at() does not end up in an infinite recursion.
         w.color_at(r, 5);
         assert!(true);
     }
