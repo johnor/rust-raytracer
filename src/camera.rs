@@ -62,7 +62,7 @@ impl Camera {
         for y in 0..image.height() - 1 {
             for x in 0..image.width() - 1 {
                 let ray = self.ray_for_pixel(x as u32, y as u32);
-                let color = world.color_at(ray);
+                let color = world.color_at(ray, 5);
                 image.set_pixel(x as usize, y as usize, color);
             }
         }
