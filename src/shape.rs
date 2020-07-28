@@ -47,6 +47,13 @@ impl Shape {
     }
 }
 
+pub fn glass_sphere() -> Shape {
+    let mut s = Shape::new(ShapeType::Sphere);
+    s.material.transparency = 1.;
+    s.material.refractive_index = 1.5;
+    s
+}
+
 fn calculate_sphere_normal(p: Tuple) -> Tuple {
     p - point(0., 0., 0.)
 }
@@ -86,7 +93,7 @@ mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
-    use crate::shape::{calculate_plane_normal, intersect_plane, Shape, ShapeType};
+    use crate::shape::{calculate_plane_normal, glass_sphere, intersect_plane, Shape, ShapeType};
     use crate::transform;
     use crate::tuple::test_utils::assert_tuple_eq;
     use crate::tuple::{point, vector};
@@ -118,6 +125,14 @@ mod tests {
         m.ambient = 1.;
         s.material.ambient = m.ambient;
         assert_eq!(m, s.material);
+    }
+
+    #[test]
+    fn glass_sphere_produces_sphere_with_glassy_material() {
+        let s = glass_sphere();
+        assert_eq!(Mat4x4::identity(), s.transform);
+        assert_eq!(1., s.material.transparency);
+        assert_eq!(1.5, s.material.refractive_index);
     }
 
     #[test]
