@@ -12,7 +12,7 @@ pub struct World {
     pub shapes: Vec<Shape>,
 }
 
-struct Comps<'a> {
+pub struct Comps<'a> {
     t: f64,
     shape: &'a Shape,
     point: Tuple,
@@ -21,6 +21,8 @@ struct Comps<'a> {
     normalv: Tuple,
     reflectv: Tuple,
     inside: bool,
+    pub n1: f64,
+    pub n2: f64,
 }
 
 impl<'a> Comps<'a> {
@@ -50,7 +52,7 @@ impl World {
         xs
     }
 
-    fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
+    pub fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
         let t = intersection.t;
         let shape = intersection.shape;
         let point = ray.position(intersection.t);
@@ -73,7 +75,50 @@ impl World {
             normalv,
             reflectv,
             inside,
+            n1: 0.,
+            n2: 0.,
         }
+    }
+
+    pub fn prepare_computations_with_intersections<'a>(
+        intersection: Intersection<'a>,
+        ray: Ray,
+        intersections: Vec<Intersection>,
+    ) -> Comps<'a> {
+        let mut containers: Vec<Shape> = vec![];
+        let mut n1: f64 = 1.0;
+        let mut n2: f64 = 1.0;
+
+        for i in intersections {
+            if i == intersection {
+                if containers.is_empty() {
+                    n1 = 1.0;
+                } else {
+                    n1 = containers.last().unwrap().material.refractive_index;
+                }
+            }
+
+            let shape_index = containers.iter().position(|&s| s == *i.shape);
+            if let Some(found_index) = shape_index {
+                containers.remove(found_index);
+            } else {
+                containers.push(*i.shape);
+            }
+
+            if i == intersection {
+                if containers.is_empty() {
+                    n2 = 1.0;
+                } else {
+                    n2 = containers.last().unwrap().material.refractive_index;
+                }
+            }
+        }
+
+        let mut comps = World::prepare_computations(intersection, ray);
+        comps.n1 = n1;
+        comps.n2 = n2;
+
+        comps
     }
 
     fn shade_hit(&self, comps: Comps, remaining: i8) -> Color {

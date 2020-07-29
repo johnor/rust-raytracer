@@ -24,7 +24,12 @@ pub fn hit(intersections: Vec<Intersection>) -> Option<Intersection> {
 #[cfg(test)]
 mod tests {
     use crate::intersections::{hit, Intersection};
-    use crate::shape::{Shape, ShapeType};
+    use crate::ray::Ray;
+    use crate::shape::{glass_sphere, Shape, ShapeType};
+    use crate::transform;
+    use crate::tuple::point;
+    use crate::tuple::vector;
+    use crate::world::World;
 
     #[test]
     fn intersection_encapsulates_t_and_object() {
@@ -75,5 +80,49 @@ mod tests {
         let xs = vec![i1, i2, i3, i4];
 
         assert_eq!(i4, hit(xs).unwrap());
+    }
+
+    macro_rules! find_n1_n2_test {
+        ($($name:ident: $value:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let (index, n1, n2) = $value;
+                    let mut a = glass_sphere();
+                    a.transform = transform::scale(2., 2., 2.);
+                    a.material.refractive_index = 1.5;
+
+                    let mut b = glass_sphere();
+                    b.transform = transform::translate(0., 0., -0.25);
+                    b.material.refractive_index = 2.;
+
+                    let mut c = glass_sphere();
+                    c.transform = transform::translate(0., 0., 0.25);
+                    c.material.refractive_index = 2.5;
+
+                    let r = Ray::new(point(0., 0., -4.), vector(0., 0., 1.));
+                    let xs = vec![
+                        Intersection::new(2., &a),
+                        Intersection::new(2.75, &b),
+                        Intersection::new(3.25, &c),
+                        Intersection::new(4.75, &b),
+                        Intersection::new(5.25, &c),
+                        Intersection::new(6., &a)
+                    ];
+                    let comps = World::prepare_computations_with_intersections(xs[index], r, xs);
+                    assert_eq!(n1, comps.n1);
+                    assert_eq!(n2, comps.n2);
+                }
+            )*
+        }
+    }
+
+    find_n1_n2_test! {
+        prepare_computations_finds_n1_n2_for_index_0: (0, 1., 1.5),
+        prepare_computations_finds_n1_n2_for_index_1: (1, 1.5, 2.),
+        prepare_computations_finds_n1_n2_for_index_2: (2, 2., 2.5),
+        prepare_computations_finds_n1_n2_for_index_3: (3, 2.5, 2.5),
+        prepare_computations_finds_n1_n2_for_index_4: (4, 2.5, 1.5),
+        prepare_computations_finds_n1_n2_for_index_5: (5, 1.5, 1.),
     }
 }
