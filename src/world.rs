@@ -133,7 +133,7 @@ impl World {
             comps.eyev,
             comps.normalv,
             self.is_shadowed(comps.over_point),
-        ) + self.refelcted_color(comps, remaining)
+        ) + self.reflected_color(comps, remaining)
     }
 
     fn is_shadowed(&self, p: Tuple) -> bool {
@@ -146,7 +146,7 @@ impl World {
         }
     }
 
-    fn refelcted_color(&self, comps: Comps, remaining: i8) -> Color {
+    fn reflected_color(&self, comps: Comps, remaining: i8) -> Color {
         if remaining > 0 && comps.shape.material.reflective > 0. {
             let r = Ray::new(comps.over_point, comps.reflectv);
             self.color_at(r, remaining - 1) * comps.shape.material.reflective
@@ -388,7 +388,7 @@ mod tests {
         w.shapes[1].material.ambient = 1.;
         let i = Intersection::new(1., &w.shapes[1]);
         let comps = World::prepare_computations(i, r);
-        assert_eq!(w.refelcted_color(comps, 5), Color::black());
+        assert_eq!(w.reflected_color(comps, 5), Color::black());
     }
 
     #[test]
@@ -405,7 +405,7 @@ mod tests {
         let i = Intersection::new(2_f64.sqrt(), &p);
         let comps = World::prepare_computations(i, r);
         assert_color_near(
-            w.refelcted_color(comps, 5),
+            w.reflected_color(comps, 5),
             Color::new(0.19032, 0.2379, 0.14274),
             0.0001,
         );
@@ -444,7 +444,7 @@ mod tests {
         );
         let i = Intersection::new(2_f64.sqrt(), &p);
         let comps = World::prepare_computations(i, r);
-        assert_eq!(w.refelcted_color(comps, 0), Color::black());
+        assert_eq!(w.reflected_color(comps, 0), Color::black());
     }
 
     #[test]
