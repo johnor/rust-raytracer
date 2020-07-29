@@ -17,6 +17,7 @@ pub struct Comps<'a> {
     shape: &'a Shape,
     point: Tuple,
     over_point: Tuple,
+    under_point: Tuple,
     eyev: Tuple,
     normalv: Tuple,
     reflectv: Tuple,
@@ -59,6 +60,7 @@ impl World {
         let eyev = -ray.direction;
         let mut normalv = shape.normal(point);
         let over_point = point + normalv * Comps::OVER_POINT_EPSILON;
+        let under_point = point - normalv * Comps::OVER_POINT_EPSILON;
         let inside = if normalv.dot(eyev) < 0. {
             normalv = -normalv;
             true
@@ -71,6 +73,7 @@ impl World {
             shape,
             point,
             over_point,
+            under_point,
             eyev,
             normalv,
             reflectv,
@@ -183,6 +186,7 @@ mod tests {
     use crate::materials::Material;
     use crate::matrix::Mat4x4;
     use crate::ray::Ray;
+    use crate::shape::glass_sphere;
     use crate::shape::{Shape, ShapeType};
     use crate::test_utils::assert_color_near;
     use crate::transform::{scale, translate};
@@ -263,15 +267,24 @@ mod tests {
 
     #[test]
     fn hit_should_offset_the_point() {
-        let mut w = World::new();
         let mut s = Shape::new(ShapeType::Sphere);
         s.transform = translate(0., 0., 1.);
-        w.shapes.push(s);
         let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
         let i = Intersection::new(5., &s);
         let comps = World::prepare_computations(i, r);
         assert!(comps.over_point.z < -Comps::OVER_POINT_EPSILON / 2.);
         assert!(comps.point.z > comps.over_point.z);
+    }
+
+    #[test]
+    fn under_point_is_offset_below_the_surface() {
+        let r = Ray::new(point(0., 0., -5.), vector(0., 0., 1.));
+        let mut s = glass_sphere();
+        s.transform = translate(0., 0., 1.);
+        let i = Intersection::new(5., &s);
+        let comps = World::prepare_computations(i, r);
+        assert!(comps.under_point.z > Comps::OVER_POINT_EPSILON / 2.);
+        assert!(comps.point.z < comps.under_point.z);
     }
 
     #[test]
