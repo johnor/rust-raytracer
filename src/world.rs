@@ -58,7 +58,7 @@ impl World {
         xs
     }
 
-    pub fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
+    fn prepare_computations(intersection: Intersection, ray: Ray) -> Comps {
         let t = intersection.t;
         let shape = intersection.shape;
         let point = ray.position(intersection.t);
