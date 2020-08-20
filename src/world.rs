@@ -130,16 +130,26 @@ impl World {
     }
 
     fn shade_hit(&self, comps: Comps, remaining: i8) -> Color {
-        Material::lighting(
+        let shadowed = self.is_shadowed(comps.over_point);
+        let surface = Material::lighting(
             comps.shape.material,
             comps.shape,
             self.light,
             comps.over_point,
             comps.eyev,
             comps.normalv,
-            self.is_shadowed(comps.over_point),
-        ) + self.reflected_color(&comps, remaining)
-            + self.refracted_color(&comps, remaining)
+            shadowed,
+        );
+        let reflected = self.reflected_color(&comps, remaining);
+        let refracted = self.refracted_color(&comps, remaining);
+
+        let &material = &comps.shape.material;
+        if material.reflective > 0. && material.transparency > 0. {
+            let reflectance = World::schlick(&comps);
+            surface + reflected * reflectance + refracted * (1. - reflectance)
+        } else {
+            surface + reflected + refracted
+        }
     }
 
     fn is_shadowed(&self, p: Tuple) -> bool {
@@ -176,6 +186,22 @@ impl World {
         let direction = comps.normalv * (n_ratio * cos_i - cos_t) - comps.eyev * n_ratio;
         let refract_ray = Ray::new(comps.under_point, direction);
         self.color_at(refract_ray, remaining - 1) * comps.shape.material.transparency
+    }
+
+    pub fn schlick(comps: &Comps) -> f64 {
+        let mut cos = comps.eyev.dot(comps.normalv);
+
+        if comps.n1 > comps.n2 {
+            let n = comps.n1 / comps.n2;
+            let sin2_t = n * n * (1. - cos * cos);
+            if sin2_t > 1. {
+                return 1.;
+            }
+            let cos_t = (1. - sin2_t).sqrt();
+            cos = cos_t;
+        }
+        let r0 = ((comps.n1 - comps.n2) / (comps.n1 + comps.n2)).powi(2);
+        r0 + (1. - r0) * (1. - cos).powi(5)
     }
 }
 
@@ -580,5 +606,31 @@ mod tests {
         let comps = World::prepare_computations_with_intersections(xs[0], r, xs);
         let c = w.shade_hit(comps, 5);
         assert_color_near(Color::new(0.93642, 0.68642, 0.68642), c, 0.00001);
+    }
+
+    #[test]
+    fn shade_hit_with_a_reflective_transparent_material() {
+        let mut w = World::default();
+        let mut floor = Shape::new(ShapeType::Plane);
+        floor.transform = translate(0., -1., 0.);
+        floor.material.transparency = 0.5;
+        floor.material.reflective = 0.5;
+        floor.material.refractive_index = 1.5;
+        w.shapes.push(floor);
+
+        let mut ball = Shape::new(ShapeType::Sphere);
+        ball.material.color = Color::new(1., 0., 0.);
+        ball.material.ambient = 0.5;
+        ball.transform = translate(0., -3.5, -0.5);
+        w.shapes.push(ball);
+
+        let r = Ray::new(
+            point(0., 0., -3.),
+            vector(0., -2_f64.sqrt() / 2., 2_f64.sqrt() / 2.),
+        );
+        let xs = vec![Intersection::new(2_f64.sqrt(), &floor)];
+        let comps = World::prepare_computations_with_intersections(xs[0], r, xs);
+        let c = w.shade_hit(comps, 5);
+        assert_color_near(Color::new(0.93391, 0.69643, 0.69243), c, 0.00001);
     }
 }

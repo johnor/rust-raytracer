@@ -26,6 +26,7 @@ mod tests {
     use crate::intersections::{hit, Intersection};
     use crate::ray::Ray;
     use crate::shape::{glass_sphere, Shape, ShapeType};
+    use crate::test_utils::{assert_f64_near, assert_near};
     use crate::transform;
     use crate::tuple::point;
     use crate::tuple::vector;
@@ -124,5 +125,41 @@ mod tests {
         prepare_computations_finds_n1_n2_for_index_3: (3, 2.5, 2.5),
         prepare_computations_finds_n1_n2_for_index_4: (4, 2.5, 1.5),
         prepare_computations_finds_n1_n2_for_index_5: (5, 1.5, 1.),
+    }
+
+    #[test]
+    fn schlick_approximation_under_total_internal_reflection() {
+        let shape = glass_sphere();
+        let r = Ray::new(point(0., 0., 2_f64.sqrt() / 2.), vector(0., 1., 0.));
+        let xs = vec![
+            Intersection::new(-2_f64.sqrt() / 2., &shape),
+            Intersection::new(2_f64.sqrt() / 2., &shape),
+        ];
+        let comps = World::prepare_computations_with_intersections(xs[1], r, xs);
+        let reflectance = World::schlick(&comps);
+        assert_eq!(1., reflectance);
+    }
+
+    #[test]
+    fn schlick_approximation_with_perpendicular_viewing_angle() {
+        let shape = glass_sphere();
+        let r = Ray::new(point(0., 0., 0.), vector(0., 1., 0.));
+        let xs = vec![
+            Intersection::new(-1., &shape),
+            Intersection::new(1., &shape),
+        ];
+        let comps = World::prepare_computations_with_intersections(xs[1], r, xs);
+        let reflectance = World::schlick(&comps);
+        assert_near(0.04, reflectance);
+    }
+
+    #[test]
+    fn schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
+        let shape = glass_sphere();
+        let r = Ray::new(point(0., 0.99, -2.), vector(0., 0., 1.));
+        let xs = vec![Intersection::new(1.8589, &shape)];
+        let comps = World::prepare_computations_with_intersections(xs[0], r, xs);
+        let reflectance = World::schlick(&comps);
+        assert_f64_near(0.48873, reflectance, 0.000001);
     }
 }
