@@ -1,164 +1,151 @@
-use std::ops::{Index, IndexMut, Mul};
+use num::Float;
+use std::ops::{AddAssign, Index, IndexMut, Mul};
 
-macro_rules! define_square_matrix_struct {
-    ($name:ident, $order:expr) => {
-        #[derive(Clone, Copy, Debug)]
-        pub struct $name {
-            pub data: [[f64; $order]; $order],
-        }
+pub trait MatrixItem: Float + AddAssign + From<f64> {}
 
-        impl $name {
-            pub fn new(data: [[f64; $order]; $order]) -> Self {
-                Self { data }
-            }
+impl<T: Float + AddAssign + From<f64>> MatrixItem for T {}
 
-            pub fn zero() -> Self {
-                let data: [[f64; $order]; $order] = [[0.0; $order]; $order];
-                Self::new(data)
-            }
-
-            pub fn identity() -> Self {
-                let mut result = Self::zero();
-                for i in 0..$order {
-                    result[i][i] = 1.0;
-                }
-                result
-            }
-
-            pub fn order() -> usize {
-                $order
-            }
-
-            pub fn transpose(&self) -> Self {
-                let mut data = [[0.0; $order]; $order];
-                for r in 0..$order {
-                    for c in 0..$order {
-                        data[c][r] = self.data[r][c]
-                    }
-                }
-                Self::new(data)
-            }
-        }
-
-        impl PartialEq for $name {
-            fn eq(&self, other: &Self) -> bool {
-                for r in 0..$order {
-                    for c in 0..$order {
-                        if (self.data[r][c] - other.data[r][c]).abs() > 0.0000000001 {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
-        }
-
-        impl Eq for $name {}
-
-        impl Index<usize> for $name {
-            type Output = [f64; $order];
-
-            fn index(&self, r: usize) -> &[f64; $order] {
-                &self.data[r]
-            }
-        }
-
-        impl IndexMut<usize> for $name {
-            fn index_mut(&mut self, r: usize) -> &mut [f64; $order] {
-                &mut self.data[r]
-            }
-        }
-
-        impl Mul for $name {
-            type Output = Self;
-            fn mul(self, other: Self) -> Self {
-                let mut data = [[0.0; $order]; $order];
-                for r in 0..$order {
-                    for c in 0..$order {
-                        let mut v = 0.0;
-                        for i in 0..$order {
-                            v += self.data[r][i] * other.data[i][c];
-                        }
-                        data[r][c] = v;
-                    }
-                }
-                Self::new(data)
-            }
-        }
-    };
+#[derive(Copy, Clone, Debug)]
+pub struct SquareMatrix<T: MatrixItem, const R: usize> {
+    pub data: [[T; R]; R],
 }
 
-macro_rules! impl_sub_matrix {
-    ($parent:ident, $child:ident) => {
-        impl $parent {
-            fn submatrix(&self, row: usize, col: usize) -> $child {
-                let mut res = $child::zero();
-                for i in 0..$parent::order() {
-                    if i != row {
-                        let k = if i < row { 0 } else { 1 };
-                        for j in 0..$parent::order() {
-                            if j != col {
-                                let l = if j < col { 0 } else { 1 };
-                                res[i - k][j - l] = self[i][j];
-                            }
-                        }
-                    }
-                }
-                res
+impl<T: MatrixItem, const R: usize> SquareMatrix<T, R> {
+    pub fn new(data: [[T; R]; R]) -> Self {
+        SquareMatrix { data }
+    }
+
+    pub fn order() -> usize {
+        R
+    }
+
+    pub fn zero() -> Self {
+        let data: [[T; R]; R] = [[0.0.into(); R]; R];
+        Self::new(data)
+    }
+
+    pub fn identity() -> Self {
+        let mut result = Self::zero();
+        for i in 0..Self::order() {
+            result[i][i] = 1.0.into();
+        }
+        result
+    }
+
+    pub fn transpose(&self) -> Self {
+        let mut data = [[0.0.into(); R]; R];
+        for r in 0..R {
+            for c in 0..R {
+                data[c][r] = self.data[r][c]
             }
         }
-    };
+        Self::new(data)
+    }
 }
 
-macro_rules! impl_determinant {
-    ($parent:ident) => {
-        impl $parent {
-            fn minor(&self, row: usize, col: usize) -> f64 {
-                self.submatrix(row, col).determinant()
-            }
+impl<T: MatrixItem, const R: usize> Index<usize> for SquareMatrix<T, R> {
+    type Output = [T; R];
 
-            fn cofactor(&self, row: usize, col: usize) -> f64 {
-                let minor = self.minor(row, col);
-                if (row + col) % 2 == 0 {
-                    minor
-                } else {
-                    -minor
-                }
-            }
+    fn index(&self, r: usize) -> &[T; R] {
+        &self.data[r]
+    }
+}
 
-            fn determinant(&self) -> f64 {
-                let mut res = 0.0;
-                for i in 0..Self::order() {
-                    res += (self[0][i] * self.cofactor(0, i));
+impl<T: MatrixItem, const R: usize> IndexMut<usize> for SquareMatrix<T, R> {
+    fn index_mut(&mut self, r: usize) -> &mut [T; R] {
+        &mut self.data[r]
+    }
+}
+
+impl<T: MatrixItem, const R: usize> PartialEq for SquareMatrix<T, R> {
+    fn eq(&self, other: &Self) -> bool {
+        let lim = 0.0000000001.into();
+        for r in 0..R {
+            for c in 0..R {
+                if (self.data[r][c] - other.data[r][c]).abs() > lim {
+                    return false;
                 }
-                res
             }
         }
-    };
+        true
+    }
 }
 
-define_square_matrix_struct!(Mat2x2, 2);
-define_square_matrix_struct!(Mat3x3, 3);
-define_square_matrix_struct!(Mat4x4, 4);
-impl_sub_matrix!(Mat4x4, Mat3x3);
-impl_sub_matrix!(Mat3x3, Mat2x2);
-impl_determinant!(Mat3x3);
-impl_determinant!(Mat4x4);
+impl<T: MatrixItem, const R: usize> Mul for SquareMatrix<T, R> {
+    type Output = Self;
+    fn mul(self, other: Self) -> Self {
+        let mut new_data = [[0.0.into(); R]; R];
+        for r in 0..R {
+            for c in 0..R {
+                let mut v: T = 0.0.into();
+                for i in 0..R {
+                    v += self.data[r][i] * other.data[i][c];
+                }
+                new_data[r][c] = v;
+            }
+        }
+        Self::new(new_data)
+    }
+}
 
-impl Mat2x2 {
-    fn determinant(&self) -> f64 {
+impl<T: MatrixItem> SquareMatrix<T, 2> {
+    pub fn determinant(&self) -> T {
         self[0][0] * self[1][1] - self[0][1] * self[1][0]
     }
 }
 
-impl Mat4x4 {
-    fn invertible(&self) -> bool {
-        self.determinant().abs() > std::f64::EPSILON
+impl<T: MatrixItem> SquareMatrix<T, 3> {
+    pub fn minor(&self, row: usize, col: usize) -> T {
+        self.submatrix(row, col).determinant()
+    }
+
+    pub fn cofactor(&self, row: usize, col: usize) -> T {
+        let minor = self.minor(row, col);
+        if (row + col) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
+
+    pub fn determinant(&self) -> T {
+        let mut res = 0.0.into();
+        for i in 0..Self::order() {
+            res += self[0][i] * self.cofactor(0, i);
+        }
+        res
+    }
+}
+
+impl<T: MatrixItem> SquareMatrix<T, 4> {
+    pub fn minor(&self, row: usize, col: usize) -> T {
+        self.submatrix(row, col).determinant()
+    }
+
+    pub fn cofactor(&self, row: usize, col: usize) -> T {
+        let minor = self.minor(row, col);
+        if (row + col) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
+
+    pub fn determinant(&self) -> T {
+        let mut res = 0.0.into();
+        for i in 0..Self::order() {
+            res += self[0][i] * self.cofactor(0, i);
+        }
+        res
+    }
+
+    pub fn invertible(&self) -> bool {
+        self.determinant().abs() > std::f64::EPSILON.into()
     }
 
     pub fn inverse(&self) -> Result<Self, &str> {
         if self.invertible() {
-            let mut res = Mat4x4::zero();
+            let mut res = SquareMatrix::<T, 4>::zero();
             let det = self.determinant();
             for r in 0..Self::order() {
                 for c in 0..Self::order() {
@@ -173,11 +160,60 @@ impl Mat4x4 {
     }
 }
 
+impl<T: MatrixItem> SquareMatrix<T, 3> {
+    pub fn submatrix(&self, row: usize, col: usize) -> SquareMatrix<T, 2> {
+        let mut res = SquareMatrix::<T, 2>::zero();
+        for i in 0..Self::order() {
+            if i != row {
+                let k = if i < row { 0 } else { 1 };
+                for j in 0..Self::order() {
+                    if j != col {
+                        let l = if j < col { 0 } else { 1 };
+                        res[i - k][j - l] = self[i][j];
+                    }
+                }
+            }
+        }
+        res
+    }
+}
+
+impl<T: MatrixItem> SquareMatrix<T, 4> {
+    pub fn submatrix(&self, row: usize, col: usize) -> SquareMatrix<T, 3> {
+        let mut res = SquareMatrix::<T, 3>::zero();
+        for i in 0..Self::order() {
+            if i != row {
+                let k = if i < row { 0 } else { 1 };
+                for j in 0..Self::order() {
+                    if j != col {
+                        let l = if j < col { 0 } else { 1 };
+                        res[i - k][j - l] = self[i][j];
+                    }
+                }
+            }
+        }
+        res
+    }
+}
+
+pub type Mat2x2 = SquareMatrix<f64, 2>;
+pub type Mat3x3 = SquareMatrix<f64, 3>;
+pub type Mat4x4 = SquareMatrix<f64, 4>;
+
 #[cfg(test)]
 mod tests {
     use crate::matrix::{Mat2x2, Mat3x3, Mat4x4};
     use crate::test_utils::assert_mat4x4_near;
     use crate::tuple::Tuple;
+
+    #[test]
+    fn index_mut() {
+        let mut m = Mat2x2::new([[-3.0, 5.0], [1.0, -2.0]]);
+
+        assert_eq!(-3.0, m[0][0]);
+        m[0][0] = 10.0;
+        assert_eq!(10.0, m[0][0]);
+    }
 
     #[test]
     fn create_2x2_matrix() {
@@ -214,6 +250,15 @@ mod tests {
     }
 
     #[test]
+    fn zero_2x2_matrix() {
+        let m = Mat2x2::zero();
+        assert_eq!(0.0, m[0][0]);
+        assert_eq!(0.0, m[1][0]);
+        assert_eq!(0.0, m[1][1]);
+        assert_eq!(0.0, m[0][1]);
+    }
+
+    #[test]
     fn matrix_equality() {
         let data = [
             [1.0, 2.0, 3.0, 4.0],
@@ -224,6 +269,8 @@ mod tests {
         let a = Mat4x4::new(data);
         let b = Mat4x4::new(data);
         assert_eq!(a, b);
+
+        assert_eq!(true, a == b);
     }
 
     #[test]
@@ -241,6 +288,11 @@ mod tests {
             [4.0, 3.0, 2.0, 1.0],
         ]);
         assert_ne!(a, b);
+
+        assert_eq!(false, a != a);
+        assert_eq!(true, a != b);
+
+        assert_eq!(false, a == b);
     }
 
     #[test]
@@ -475,7 +527,7 @@ mod tests {
             [0., 0., 0., 0.],
         ]);
         match a.inverse() {
-            Err(s) => assert_eq!("Matrix is not invertible", s),
+            Err(s) => assert_eq!("SquareMatrix is not invertible", s),
             _ => assert!(false),
         }
     }
